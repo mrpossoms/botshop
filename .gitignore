@@ -1,0 +1,52 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Autotools junk
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache/
+config.h
+config.h.in
+config.log
+config.status
+configure
+depcomp
+install-sh
+missing
+src/.deps/
+src/Makefile
+src/Makefile.in
+src/botshop
+stamp-h1
+external
