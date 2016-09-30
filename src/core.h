@@ -7,6 +7,7 @@
 
 // c++ libs
 #include <map>
+#include <vector>
 
 // project libs
 #include <ode/ode.h>

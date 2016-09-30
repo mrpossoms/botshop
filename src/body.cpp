@@ -1,13 +1,23 @@
-#include "body.h"
-#define ATTR_IS(name) if(!strcmp(attr->name(), (name)))
-#define ATTR_VALUE_IS(name) if(!strcmp(attr->value(), (name)))
-#define CHILD_IS_NAMED(name) if(!strcmp(child->name(), (name)))
+#include "body.hpp"
+
+using namespace botshop;
+
+#define EACH_CHILD(NODE) for(xml_node<>* child=(NODE).first_node(); child; child=child->next_sibling())
+#define EACH_ATTR(NODE) for(xml_attribute<>* attr = (NODE).first_attribute(); attr; attr=attr->next_attribute())
+#define ATTR_IS(NAME) if(!strcmp(attr->name(), (NAME)))
+#define ATTR_VALUE_IS(NAME) if(!strcmp(attr->value(), (NAME)))
+#define CHILD_IS_NAMED(NAME) if(!strcmp(child->name(), (NAME)))
 #define EACH_NUMBER_IN(STR, N) for(char i=0, *number=strtok((STR), ","); i++<(N); number=strtok(NULL, ","))
-#define EACH_CHILD(NODE) for(xml_node<>* child=(NODE).first_node();child;child=child->next_sibling())
-#define EACH_ATTR(NODE) for(xml_attribute<>* attr = (NODE).first_attribute();attr;attr=attr->next_attribute())
 
-using namespace rapidxml;
+static void _motor_axis_0(dJointID joint, dReal x, dReal y, dReal z);
+static void _motor_axis_1(dJointID joint, dReal x, dReal y, dReal z);
+static void _motor_axis_2(dJointID joint, dReal x, dReal y, dReal z);
 
+//     ___             _            _
+//    / __|___ _ _  __| |_ __ _ _ _| |_ ___
+//   | (__/ _ \ ' \(_-<  _/ _` | ' \  _(_-<
+//    \___\___/_||_/__/\__\__,_|_||_\__/__/
+//
 const char* HINGE_KEYS[] = {
 	"hinge",
 	"piston",
@@ -16,7 +26,7 @@ const char* HINGE_KEYS[] = {
 	NULL
 };
 
-dJointId (*HINGE_CREATORS[])(dWorldID, dJointGroupID) = {
+dJointID (*HINGE_CREATORS[])(dWorldID, dJointGroupID) = {
 	dJointCreateHinge,
 	dJointCreatePiston,
 	dJointCreateAMotor,
@@ -45,11 +55,17 @@ static Quat _quat_rule(xml_node<>* node)
 	EACH_NUMBER_IN(node->value(), 4)
 	{
 		memcpy(num_str, number, node->value_size());
-		v.v[i] = atof(num_str);
+		q.v[i] = atof(num_str);
 	}
 
 	return q;
 }
+
+//    ___              ___             _   _
+//   | __| _ ___ ___  | __|  _ _ _  __| |_(_)___ _ _  ___
+//   | _| '_/ -_) -_) | _| || | ' \/ _|  _| / _ \ ' \(_-<
+//   |_||_| \___\___| |_| \_,_|_||_\__|\__|_\___/_||_/__/
+//
 //------------------------------------------------------------------------------
 static Vec3 _vec3_rule(xml_node<>* node)
 {
@@ -103,7 +119,7 @@ static int _model_rule(Body& body, xml_node<>& node)
 	{
 		ATTR_IS("src")
 		{
-			body.model = STLFactory.get_model(attr->value());
+			body.model = STLFactory::get_model(attr->value());
 			assert(body.model);
 		}
 	}
@@ -190,6 +206,7 @@ static Body* _body_rule(xml_node<>* node)
 //------------------------------------------------------------------------------
 static int _body_proc_attribute(Body& body, xml_attribute<>& attr)
 {
+/*
 	ATTR_IS("mass")
 	{
 		dMass m;
@@ -235,10 +252,15 @@ static int _body_proc_attribute(Body& body, xml_attribute<>& attr)
 
 		dBodySetQuaternion(body.ode_body, orientation);
 	}
-
+*/
 	return 0;
 }
 //------------------------------------------------------------------------------
+//    __  __     _   _            _
+//   |  \/  |___| |_| |_  ___  __| |___
+//   | |\/| / -_)  _| ' \/ _ \/ _` (_-<
+//   |_|  |_\___|\__|_||_\___/\__,_/__/
+//
 Body::Body(dWorldID ode_world)
 {
 	this->ode_body = dBodyCreate(ode_world);
@@ -250,7 +272,7 @@ Body::Body(dWorldID ode_world, xml_node<>& node)
 
 
 }
-
+//------------------------------------------------------------------------------
 Body::~Body()
 {
 
