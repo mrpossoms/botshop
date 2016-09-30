@@ -6,7 +6,9 @@
 	<collider type="model"/>
 
 	<!-- Physical properties of this body -->
-	<mass>1</mass> <!-- Mass in Kg -->
+	<phys>
+		<mass>1</mass> <!-- Mass in Kg -->
+	</phys>
 	<position>0,0,0</position> <!-- Absolute position in Meters  -->
 	<orientation>0,0,0,1</orientation> <!-- Quaternion -->
 
@@ -26,7 +28,9 @@
 				<radius>0.25</radius>
 			</collider>
 
-			<mass>0.25</mass>
+			<phys>
+				<mass>0.25</mass>
+			</phys>
 			<position>-0.125,-0.5,0</position>
 		</body>
 	</actuator>
@@ -39,7 +43,9 @@
 				<radius>0.25</radius>
 			</collider>
 
-			<mass>0.25</mass>
+			<phys>
+				<mass>0.25</mass>
+			</phys>
 			<position>0.125,-0.5,0</position>
 		</body>
 	</actuator>
@@ -58,7 +64,9 @@
 				<radius>0.25</radius>
 			</collider>
 
-			<mass>0.25</mass>
+			<phys>
+				<mass>0.25</mass>
+			</phys>
 			<position>-0.125,0.5,0</position>
 		</body>
 	</actuator>
@@ -77,7 +85,9 @@
 				<radius>0.25</radius>
 			</collider>
 
-			<mass>0.25</mass>
+			<phys>
+				<mass>0.25</mass>
+			</phys>
 			<position>0.125,0.5,0</position>
 		</body>
 	</actuator>
