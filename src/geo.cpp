@@ -58,7 +58,7 @@ STLModel::~STLModel()
 	delete this->_indices;
 }
 //------------------------------------------------------------------------------
-dGeomID STLModel::create_collision_geo(dSpace ode_space)
+dGeomID STLModel::create_collision_geo(dSpaceID ode_space)
 {
 	ode_tri_mesh_dat = dGeomTriMeshDataCreate();
 

@@ -12,7 +12,6 @@
 // project libs
 #include <ode/ode.h>
 #include <linmath.h>
-#include "rapidxml/rapidxml.hpp"
 #include "constants.h"
 #include "interfaces.hpp"
 

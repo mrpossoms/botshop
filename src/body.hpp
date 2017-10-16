@@ -2,10 +2,13 @@
 #include "core.h"
 #include "geo.hpp"
 
-using namespace rapidxml;
+extern dWorldID ODE_CURRENT_WORLD;
 
 namespace botshop
 {
+
+class Joint;
+class Body;
 
 class Body : Dynamic
 {
@@ -15,39 +18,66 @@ class Body : Dynamic
 		dSpaceID ode_body_space;
 
 	public:
-		Body(dWorldID ode_world);
-		Body(dWorldID ode_world, xml_node<>& node);
+		Body(dWorldID world, dSpaceID space);
 		~Body();
+
+		dWorldID world;
+		dSpaceID space;
 
 		dBodyID ode_body;
 		dGeomID ode_geo;
+		dMass   ode_mass;
 
+		Body* parent;
 		STLModel* model;
 
 		std::vector<Body*> welded_children;
-		std::vector<Body*> jointed_children;
+		std::vector<Joint*> jointed_children;
 		std::vector<dJointID> joints;
 
-		void weld(Body* body);
-		void joint_caster(Body* body, Vec3& anchor);
+		Body* add_all();
+		Body* remove_all();
 
-		virtual Vec3 position();
-		virtual Vec3 position(Vec3& pos);
+		Body* attach(const Joint* joint);
 
-		virtual Quat orientation();
-		virtual Quat orientation(Quat& ori);
+		Body* is_a_box(float width, float height, float length);
+		Body* is_a_sphere(float radius);
+		Body* is_a_mesh(STLModel& model);
 
-		virtual Vec3 velocity();
-		virtual Vec3 velocity(Vec3& vel);
+		// Dynamic Interface
+		Vec3 position();
+		Body* position(Vec3& pos);
 
-		virtual Vec3 force();
-		virtual Vec3 force(Vec3& force);
+		Quat orientation();
+		Body* orientation(Quat& ori);
 
-		virtual Vec3 torque();
-		virtual Vec3 torque(Vec3& torque);
+		Vec3 velocity();
+		Body* velocity(Vec3& vel);
 
-		virtual dMass mass();
-		virtual dMass mass(dMass mass);
+		Vec3 force();
+		Body* force(Vec3& force);
+
+		Vec3 torque();
+		Body* torque(Vec3& torque);
+
+		dMass mass();
+		Body* mass(float mass);
+
+		Body* operator+(const Joint* joint);
+};
+
+
+class Joint
+{
+public:
+	Joint(Body& body, dJointID joint);
+
+	dJointID ode_joint;
+	Body* body;
+
+	Joint* at(Vec3 anchor);
+
+	static Joint* wheel(Body& body, Vec3 steer_axis, Vec3 axle_axis);
 };
 
 }

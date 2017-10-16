@@ -29,7 +29,7 @@ struct STLModel
 
 	STLModel(int fd);
 	~STLModel();
-	dGeomID create_collision_geo(dSpace ode_space);
+	dGeomID create_collision_geo(dSpaceID ode_space);
 
 	Vec3 min_position();
 	Vec3 max_position();
