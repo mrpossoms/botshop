@@ -8,6 +8,10 @@
 // c++ libs
 #include <map>
 #include <vector>
+#include <fstream>
+#include <string>
+#include <iostream>
+#include <streambuf>
 
 // project libs
 #include <ode/ode.h>
@@ -15,7 +19,9 @@
 #include "constants.h"
 #include "interfaces.hpp"
 
-char* str_from_file(const char* path)
+namespace botshop {
+
+static char* str_from_file(const char* path)
 {
 	char* str = NULL;
 
@@ -30,4 +36,6 @@ char* str_from_file(const char* path)
 	close(fd);
 
 	return str;
+}
+
 }

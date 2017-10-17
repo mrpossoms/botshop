@@ -47,6 +47,7 @@ class Body : Dynamic
 		// Dynamic Interface
 		Vec3 position();
 		Body* position(Vec3& pos);
+		Body* position(float x, float y, float z);
 
 		Quat orientation();
 		Body* orientation(Quat& ori);
@@ -62,6 +63,8 @@ class Body : Dynamic
 
 		dMass mass();
 		Body* mass(float mass);
+
+		void matrix(mat4x4 world);
 
 		Body* operator+(const Joint* joint);
 };

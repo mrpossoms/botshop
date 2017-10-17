@@ -18,7 +18,8 @@ STLModel::STLModel(int fd)
 
 	// allocate space for the model's geometry
 	unsigned int vert_count = this->tri_count * 3;
-	all_verts = new Vec3[vert_count];
+	all_verts = new STLVert[vert_count];
+	all_positions = new Vec3[vert_count];
 	all_normals = new Vec3[this->tri_count];
 	this->tris = new STLTri[this->tri_count];
 	this->_indices = new unsigned int[vert_count];
@@ -31,7 +32,7 @@ STLModel::STLModel(int fd)
 		_indices[i] = i;
 	}
 
-	assert(this->tris && all_verts && all_normals);
+	assert(this->tris && all_positions && all_normals);
 
 	// read all the geometry
 	for(int i = 0; i < this->tri_count; ++i)
@@ -40,13 +41,22 @@ STLModel::STLModel(int fd)
 
 		// point the verts and normal at the appropriate
 		// spot allocated in the contiguious arrays
-		tri->verts = all_verts + (i * 3);
+		tri->verts = all_positions + (i * 3);
 		tri->normal = all_normals + i;
 
 		// read from file
 		read(fd, tri->normal, sizeof(Vec3));
 		read(fd, tri->verts, sizeof(Vec3) * 3);
 		read(fd, &tri->attr, sizeof(tri->attr));
+
+		// Copy positions and normals into contiguious array
+		// for rendering
+		all_verts[(i * 3) + 0].position = tri->verts[0];
+		all_verts[(i * 3) + 0].normal   = *tri->normal;
+		all_verts[(i * 3) + 1].position = tri->verts[1];
+		all_verts[(i * 3) + 1].normal   = *tri->normal;
+		all_verts[(i * 3) + 2].position = tri->verts[2];
+		all_verts[(i * 3) + 2].normal   = *tri->normal;
 	}
 }
 //------------------------------------------------------------------------------
@@ -80,15 +90,15 @@ dGeomID STLModel::create_collision_geo(dSpaceID ode_space)
 Vec3 STLModel::min_position()
 {
 	if(_min) return *_min;
-	_min = new Vec3(all_verts->x, all_verts->y, all_verts->z);
+	_min = new Vec3(all_positions->x, all_positions->y, all_positions->z);
 
 	for(int i = tri_count * 3; i--;)
 	{
 		for(int j = 3; j--;)
 		{
-			if(all_verts[i].v[j] < _min->v[j])
+			if(all_positions[i].v[j] < _min->v[j])
 			{
-				_min->v[j] = all_verts[i].v[j];
+				_min->v[j] = all_positions[i].v[j];
 			}
 		}
 	}
@@ -99,15 +109,15 @@ Vec3 STLModel::min_position()
 Vec3 STLModel::max_position()
 {
 	if(_max) return *_max;
-	_max = new Vec3(all_verts->x, all_verts->y, all_verts->z);
+	_max = new Vec3(all_positions->x, all_positions->y, all_positions->z);
 
 	for(int i = tri_count * 3; i--;)
 	{
 		for(int j = 3; j--;)
 		{
-			if(all_verts[i].v[j] > _max->v[j])
+			if(all_positions[i].v[j] > _max->v[j])
 			{
-				_max->v[j] = all_verts[i].v[j];
+				_max->v[j] = all_positions[i].v[j];
 			}
 		}
 	}

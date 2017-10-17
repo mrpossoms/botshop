@@ -1,5 +1,7 @@
 #pragma once
 
+#include <GLFW/glfw3.h>
+
 namespace botshop
 {
 
@@ -16,6 +18,12 @@ class Dynamic
 	virtual Vec3 force() = 0;
 	virtual Vec3 torque() = 0;
 	virtual dMass mass() = 0;
+	virtual void matrix(mat4x4 world) = 0;
+};
+
+class Drawable
+{
+	virtual void draw(GLint world_uniform) = 0;
 };
 
 }

@@ -16,12 +16,19 @@ struct STLTri
 	uint16_t attr;
 };
 
+struct STLVert
+{
+	Vec3 position;
+	Vec3 normal;
+};
+
 struct STLModel
 {
 	uint8_t header[STL_HEADER_SIZE];
 	uint32_t tri_count;
 
-	Vec3* all_verts;
+	STLVert* all_verts;
+	Vec3* all_positions;
 	Vec3* all_normals;
 	STLTri* tris;
 

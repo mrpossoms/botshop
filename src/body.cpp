@@ -27,7 +27,7 @@ Body::~Body()
 
 Body* Body::add_all()
 {
-	dSpaceAdd(space, ode_body);
+	dSpaceAdd(space, ode_geo);
 
 	for(Body* body : welded_children)
 	{
@@ -100,7 +100,13 @@ Body* Body::position(Vec3& pos)
 	dBodySetPosition(ode_body, pos.x, pos.y, pos.z);
 	return this;
 }
+//------------------------------------------------------------------------------
 
+Body* Body::position(float x, float y, float z)
+{
+	Vec3 v(x, y, z);
+	return position(v);
+}
 //------------------------------------------------------------------------------
 Quat Body::orientation()
 {
@@ -177,12 +183,22 @@ Body* Body::mass(float m)
 }
 
 //------------------------------------------------------------------------------
+
 Body* Body::operator+(const Joint* joint)
 {
 	return attach(joint);
 }
 
 //------------------------------------------------------------------------------
+
+void Body::matrix(mat4x4 world)
+{
+	Vec3 pos = position();
+	mat4x4_from_quat(world, orientation().v);
+	mat4x4_translate_in_place(world, pos.x, pos.y, pos.z);
+}
+//------------------------------------------------------------------------------
+
 Joint::Joint(Body& body, dJointID joint)
 {
 	ode_joint = joint;
@@ -190,6 +206,7 @@ Joint::Joint(Body& body, dJointID joint)
 }
 
 //------------------------------------------------------------------------------
+
 Joint* Joint::at(Vec3 a)
 {
 	dJointSetHinge2Anchor(ode_joint, a.x, a.y, a.z);
