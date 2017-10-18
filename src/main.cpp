@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
 
 	mat4x4 vp;
 	cam.view_projection(vp);
-	glUniformMatrix4fv(glGetUniformLocation(prog, "view_projection"), 1, GL_FALSE, vp);
+	glUniformMatrix4fv(glGetUniformLocation(prog, "view_projection"), 1, GL_FALSE, (GLfloat*)vp);
 	GLint world_uniform = glGetUniformLocation(prog, "world");
 
 	while(!glfwWindowShouldClose(win))

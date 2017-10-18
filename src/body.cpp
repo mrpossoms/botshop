@@ -77,7 +77,7 @@ Body* Body::is_a_sphere(float radius)
 	return this;
 }
 //------------------------------------------------------------------------------
-Body* Body::is_a_mesh(STLModel& model)
+Body* Body::is_a_mesh(Model& model)
 {
 	ode_geo = model.create_collision_geo(space);
 	dMassSetTrimesh(&ode_mass, 1, ode_geo);

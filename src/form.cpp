@@ -3,7 +3,7 @@
 
 using namespace botshop;
 
-Form::Form(dWorldID world, dSpaceID space, STLModel* mesh) : Body(world, space)
+Form::Form(dWorldID world, dSpaceID space, Model* mesh) : Body(world, space)
 {
 	vert_count = mesh->tri_count * 3;
 	glGenBuffers(1, &vbo);

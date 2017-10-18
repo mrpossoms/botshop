@@ -22,12 +22,26 @@ struct STLVert
 	Vec3 normal;
 };
 
-struct STLModel
+struct Vertex
+{
+	Vec3 position;
+	Vec3 normal;
+	Vec3 texture;
+};
+
+struct Model
+{
+	virtual dGeomID create_collision_geo(dSpaceID ode_space) = 0;
+	virtual unsigned int vert_count() = 0;
+	virtual Vertex* verts() = 0;
+};
+
+struct STLModel : Model
 {
 	uint8_t header[STL_HEADER_SIZE];
 	uint32_t tri_count;
 
-	STLVert* all_verts;
+	Vertex* all_verts;
 	Vec3* all_positions;
 	Vec3* all_normals;
 	STLTri* tris;

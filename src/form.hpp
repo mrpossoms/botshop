@@ -9,7 +9,7 @@ namespace botshop {
 class Form : Body, Drawable
 {
 public:
-	Form(dWorldID world, dSpaceID space, STLModel* mesh);
+	Form(dWorldID world, dSpaceID space, Model* mesh);
 	~Form();
 
 	void draw(GLint world_uniform);
