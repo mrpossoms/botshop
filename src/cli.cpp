@@ -14,6 +14,7 @@ Cli::Cli(CliOption** opts)
 	}
 }
 
+
 int Cli::process(char* const* argv, int argc, Context& ctx)
 {
 	struct option long_opts[opt_count];
@@ -23,11 +24,10 @@ int Cli::process(char* const* argv, int argc, Context& ctx)
 	// assemble long and short arg lists
 	for(int i = 0; i < opt_count; ++i)
 	{
-		struct option opt = {
-			.name = options[i]->name,
-			.has_arg = options[i]->has_arg ? required_argument : no_argument,
-			.val = options[i]->flag
-		};
+		struct option opt = {};
+		opt.name = options[i]->name;
+		opt.has_arg = options[i]->has_arg ? required_argument : no_argument;
+		opt.val = options[i]->flag;
 
 		long_opts[i] = opt;
 		*short_opt = opt.val;
@@ -41,7 +41,7 @@ int Cli::process(char* const* argv, int argc, Context& ctx)
 
 	// Process all args
 	int ch;
-	while((ch = getopt_long(argc, argv, short_opts, long_opts, NULL)) != -1)
+	while((ch = getopt_long(argc, argv, short_opts, long_opts, (int*)0)) != -1)
 	{
 		for(int i = opt_count; i--;)
 		{

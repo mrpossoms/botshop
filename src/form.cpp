@@ -5,13 +5,12 @@ using namespace botshop;
 
 Form::Form(dWorldID world, dSpaceID space, Model* mesh) : Body(world, space)
 {
-	vert_count = mesh->tri_count * 3;
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(
 		GL_ARRAY_BUFFER,
-		vert_count * sizeof(STLVert),
-		mesh->all_verts,
+		mesh->vert_count() * sizeof(STLVert),
+		mesh->verts(),
 		GL_STATIC_DRAW
 	);
 }

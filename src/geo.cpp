@@ -18,7 +18,7 @@ STLModel::STLModel(int fd)
 
 	// allocate space for the model's geometry
 	unsigned int vert_count = this->tri_count * 3;
-	all_verts = new STLVert[vert_count];
+	all_verts = new Vertex[vert_count];
 	all_positions = new Vec3[vert_count];
 	all_normals = new Vec3[this->tri_count];
 	this->tris = new STLTri[this->tri_count];

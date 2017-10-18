@@ -11,7 +11,7 @@ ifeq ($(OS),Darwin)
 	LINK += -lopencv_videoio
 else
 	LINK +=-lglfw3 -lGL -lX11 -lXi -lXrandr -lXxf86vm -lXinerama -lXcursor -lrt -lm -pthread -ldl
-	CFLAGS += -D_XOPEN_SOURCE=500
+	CFLAGS += -D_XOPEN_SOURCE=500 -D_GNU_SOURCE -DGL_GLEXT_PROTOTYPES
 endif
 
 obj:

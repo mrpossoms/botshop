@@ -120,8 +120,8 @@ int main(int argc, char* argv[])
 		"position", "normal", NULL
 	};
 	GLint prog = program(
-		load_shader("basic.vsh", GL_VERTEX_SHADER),
-		load_shader("basic.fsh", GL_FRAGMENT_SHADER),
+		load_shader("resources/basic.vsh", GL_VERTEX_SHADER),
+		load_shader("resources/basic.fsh", GL_FRAGMENT_SHADER),
 		attrs
 	);
 
@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
 	dWorldID world = dWorldCreate();
 	dSpaceID space = dHashSpaceCreate(0);
 
-	botshop::Form box(world, space);
+	botshop::Form box(world, space, NULL);
 	botshop::Camera cam(world, space, M_PI / 2, 160, 120);
 
 	box.is_a_box(1, 1, 1)

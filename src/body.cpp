@@ -217,7 +217,8 @@ Joint* Joint::at(Vec3 a)
 Joint* Joint::wheel(Body& body, Vec3 steer_axis, Vec3 axle_axis)
 {
 	Joint* wheel = new Joint(body, dJointCreateHinge2(body.world, 0));
-	dJointSetHinge2Axes(wheel->ode_joint, steer_axis.v, axle_axis.v);
+	dJointSetHinge2Axis1(wheel->ode_joint, steer_axis.x, steer_axis.y, steer_axis.z);
+	dJointSetHinge2Axis2(wheel->ode_joint, axle_axis.x,  axle_axis.y,  axle_axis.z);
 	dJointSetHinge2Param(wheel->ode_joint, dParamSuspensionERP, 0.4);
 	dJointSetHinge2Param(wheel->ode_joint, dParamSuspensionCFM, 0.8);
 

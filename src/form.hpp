@@ -6,7 +6,7 @@
 
 namespace botshop {
 
-class Form : Body, Drawable
+class Form : public Body, Drawable
 {
 public:
 	Form(dWorldID world, dSpaceID space, Model* mesh);

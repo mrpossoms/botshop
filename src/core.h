@@ -14,6 +14,9 @@
 #include <streambuf>
 
 // project libs
+#include <GLFW/glfw3.h>
+#include <GL/glx.h>
+#include <GL/glext.h>
 #include <ode/ode.h>
 #include <linmath.h>
 #include "constants.h"
