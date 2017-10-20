@@ -4,6 +4,9 @@
 
 #define STL_HEADER_SIZE 80
 
+namespace botshop
+{
+
 //    ___ _____ _
 //   / __|_   _| |
 //   \__ \ | | | |__
@@ -69,3 +72,21 @@ public:
 	static STLModel* get_model(const char* path);
 };
 //------------------------------------------------------------------------------
+struct OBJModel : Model
+{
+	OBJModel(int fd);
+	~OBJModel();
+
+	dGeomID create_collision_geo(dSpaceID ode_space);
+	unsigned int vert_count();
+	Vertex* verts();
+
+	dTriMeshDataID ode_tri_mesh_dat;
+private:
+	unsigned int _vert_count, _pos_count, _norm_count, _tex_count;
+	Vec3 *positions, *normals;
+	Vec3 *texture;
+	Vertex* vertices;
+};
+
+}

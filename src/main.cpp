@@ -125,6 +125,9 @@ int main(int argc, char* argv[])
 		attrs
 	);
 
+
+	botshop::OBJModel mod(open("resources/default.obj", O_RDONLY));
+
 	dInitODE2(0);
 	dWorldID world = dWorldCreate();
 	dSpaceID space = dHashSpaceCreate(0);
