@@ -17,7 +17,7 @@ public:
 
 private:
 	GLuint vbo;
-	unsigned int vert_count;
+	Model* mesh;
 };
 
 }

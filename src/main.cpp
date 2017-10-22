@@ -24,6 +24,10 @@ GLFWwindow* init_glfw()
 
 	glfwMakeContextCurrent(win);
 
+	GLuint vao;
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
 	return win;
 }
 
@@ -115,18 +119,20 @@ GLint program(GLint vertex, GLint frag, const char** attributes)
 int main(int argc, char* argv[])
 {
 	GLFWwindow* win = init_glfw();
+	char buf[1024];
+	getcwd(buf, 1024);
+	printf("%s\n", buf);
 
 	const char* attrs[] = {
 		"position", "normal", NULL
 	};
 	GLint prog = program(
-		load_shader("basic.vsh", GL_VERTEX_SHADER),
-		load_shader("basic.fsh", GL_FRAGMENT_SHADER),
+		load_shader("resources/basic.vsh", GL_VERTEX_SHADER),
+		load_shader("resources/basic.fsh", GL_FRAGMENT_SHADER),
 		attrs
 	);
 
 
-	printf("%s\n", getwd(NULL));
 	// int fd = open("./untitled.obj", O_RDONLY);
 	// printf("%d\n", errno);
 	// botshop::OBJModel mod(fd);
@@ -135,14 +141,16 @@ int main(int argc, char* argv[])
 	dWorldID world = dWorldCreate();
 	dSpaceID space = dHashSpaceCreate(0);
 
-	botshop::Form box(world, space, botshop::ModelFactory::get_model("untitled.obj"));
+	botshop::Form box(world, space, botshop::ModelFactory::get_model("resources/untitled.obj"));
 	botshop::Camera cam(world, space, M_PI / 2, 160, 120);
 
 	box.is_a_box(1, 1, 1)
-	 ->position(0, 0, 1)
+	 ->position(2, 0, 0)
 	 ->add_all();
 
-	cam.is_a_sphere(0.05)->add_all();
+	cam.is_a_sphere(0.05)
+		->position(0, 0, 0)
+		->add_all();
 
 	dWorldSetGravity (world,0,0,-0.5);
 

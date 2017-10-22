@@ -195,7 +195,7 @@ void Body::matrix(mat4x4 world)
 {
 	Vec3 pos = position();
 	mat4x4_from_quat(world, orientation().v);
-	mat4x4_translate_in_place(world, pos.x, pos.y, pos.z);
+	mat4x4_translate(world, pos.x, pos.y, pos.z);
 }
 //------------------------------------------------------------------------------
 
