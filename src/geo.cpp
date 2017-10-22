@@ -88,6 +88,7 @@ dGeomID STLModel::create_collision_geo(dSpaceID ode_space)
 
 	return dCreateTriMesh(ode_space, ode_tri_mesh_dat, 0, 0, 0);
 }
+
 //------------------------------------------------------------------------------
 Vec3 STLModel::min_position()
 {
@@ -107,8 +108,9 @@ Vec3 STLModel::min_position()
 
 	return *_min;
 }
-Vec3 STLModel::max_position()
+
 //------------------------------------------------------------------------------
+Vec3 STLModel::max_position()
 {
 	if(_max) return *_max;
 	_max = new Vec3(all_positions->x, all_positions->y, all_positions->z);
@@ -126,6 +128,19 @@ Vec3 STLModel::max_position()
 
 	return *_max;
 }
+
+//------------------------------------------------------------------------------
+unsigned int STLModel::vert_count()
+{
+	return tri_count * 3;
+}
+
+//------------------------------------------------------------------------------
+Vertex* STLModel::verts()
+{
+	return NULL;
+}
+
 //------------------------------------------------------------------------------
 //     ___  ___    _
 //    / _ \| _ )_ | |
@@ -133,18 +148,19 @@ Vec3 STLModel::max_position()
 //    \___/|___/\__/
 //
 enum ObjLineType {
-	UNKNOWN = 0,
-	COMMENT,
+	COMMENT = 0,
 	POSITION,
 	TEXTURE,
 	NORMAL,
 	PARAMETER,
 	FACE,
+	UNKNOWN,
 };
 
 
 struct ObjLine {
 	ObjLineType type;
+	char str[1024];
 	union {
 		vec3 position;
 		vec3 texture;
@@ -171,25 +187,28 @@ static int get_line(int fd, char* line)
 	return size;
 }
 
-
-ObjLine line(int fd)
+//------------------------------------------------------------------------------
+bool parse_line(int fd, ObjLine& line)
 {
-	char str[1024];
-	char* save_ptr = NULL;
-	ObjLine line;
+	char *save_ptr = NULL, *sub_save_ptr = NULL;
+	line.type = UNKNOWN;
 
-	get_line(fd, str);
+	if(get_line(fd, line.str) == 0)
+	{
+		return false;
+	}
 
-	char* token = strtok_r(str, " ", &save_ptr);
-	if(!token) return line;
+	char* token = strtok_r(line.str, " ", &save_ptr);
+	if(!token) return false;
 
 	// Determine the tag of the line
-	char* tag[] = { "#", "v", "vt", "vn", "vp", "f", NULL };
+	const char* tag[] = { R"(#)", R"(v)", R"(vt)", R"(vn)", R"(vp)", R"(f)", NULL };
 	for(int i = 0; tag[i]; ++i)
 	{
 		if(strcmp(tag[i], token) == 0)
 		{
 			line.type = (ObjLineType)i;
+			break;
 		}
 	}
 
@@ -216,61 +235,193 @@ ObjLine line(int fd)
 			vec_size = 3;
 			break;
 		case FACE:
+		bzero(&line.face, sizeof(line.face));
 		for(int i = 0; i < 3; ++i)
 		{
-			token = strtok_r(str, " ", &save_ptr);
+			token = strtok_r(NULL, " ", &save_ptr);
 			if(!token) break;
 
-			sscanf(token, "%d/%d/%d",
-				line.face.pos_idx  + i,
-				line.face.tex_idx  + i,
-				line.face.norm_idx + i
-			);
+			char* idx_token = token;
+			for(int j = strlen(idx_token); j--;)
+			{
+				if(idx_token[j] == '/') idx_token[j] = '\0';
+			}
+
+			for(int j = 0; j < 3; ++j)
+			{
+				if(*idx_token != '\0') switch (j)
+				{
+					case 0:
+						sscanf(idx_token, "%d", &line.face.pos_idx[i]);
+						break;
+					case 1:
+						sscanf(idx_token, "%d", &line.face.tex_idx[i]);
+						break;
+					case 2:
+						sscanf(idx_token, "%d", &line.face.norm_idx[i]);
+						break;
+				}
+
+				idx_token += strlen(idx_token) + 1;
+			}
 		}
 			break;
-		default:
-			return line;
+		default:;
 	}
 
 	// Read the vector selected above
 	for(int i = 0; i < vec_size; ++i)
 	{
-		token = strtok_r(str, " ", &save_ptr);
+		token = strtok_r(NULL, " ", &save_ptr);
+		printf("type: %d TOK: '%s' %d\n", line.type, token, vec_size);
 		sscanf(token, "%f", v + i);
 	}
 
-	return line;
+	return true;
 }
 
-
+//------------------------------------------------------------------------------
 OBJModel::OBJModel(int fd)
 {
-	ObjLine l = line(fd);
+	ObjLine l = {};
+	while(parse_line(fd, l))
+	{
+		switch (l.type)
+		{
+			case COMMENT:
+				printf("%s\n", l.str);
+				break;
+			case POSITION:
+			{
+				printf("p %f %f %f\n", l.position[0], l.position[1], l.position[2]);
+				Vec3 p(l.position[0], l.position[1], l.position[2]);
+				positions.push_back(p);
+			}
+				break;
+			case TEXTURE:
+			{
+				Vec3 t(l.texture[0], l.texture[1], l.texture[2]);
+				tex_coords.push_back(t);
+			}
+				break;
+			case NORMAL:
+			{
+				printf("n %f %f %f\n", l.normal[0], l.normal[1], l.normal[2]);
+				Vec3 n(l.normal[0], l.normal[1], l.normal[2]);
+				normals.push_back(n);
+			}
+				break;
+			case PARAMETER:
+			{
+				Vec3 p(l.parameter[0], l.parameter[1], l.parameter[2]);
+				params.push_back(p);
+			}
+				break;
+			case FACE:
+				printf("FACE\n");
+				for(int i = 3; i--;)
+				{
+					Vertex v = {};
 
+					if(l.face.pos_idx[i]) v.position = positions[l.face.pos_idx[i]];
+					if(l.face.tex_idx[i]) v.texture = tex_coords[l.face.tex_idx[i]];
+					if(l.face.norm_idx[i]) v.normal = normals[l.face.norm_idx[i]];
+				}
+				break;
+			case UNKNOWN:
+				break;
+		}
+	}
 }
 
-
+//------------------------------------------------------------------------------
 OBJModel::~OBJModel()
 {
 
 }
 
-
+//------------------------------------------------------------------------------
 dGeomID OBJModel::create_collision_geo(dSpaceID ode_space)
 {
-	ode_tri_mesh_dat = dGeomTriMeshDataCreate();
+	unsigned int indices[positions.size()];
+
+	for(int i = 0; i < positions.size(); ++i) indices[i] = i;
+
+	dGeomTriMeshDataBuildSingle(
+		ode_tri_mesh_dat,
+		positions.data(),     // verts
+		sizeof(Vec3),    // vert stride
+		positions.size(),      // vert count
+		indices,        // indicies
+		positions.size(),      // ind count
+		sizeof(unsigned int) * 3 // tri ind stride
+	);
 
 	return dCreateTriMesh(ode_space, ode_tri_mesh_dat, 0, 0, 0);
 }
 
-
+//------------------------------------------------------------------------------
 unsigned int OBJModel::vert_count()
 {
-
+	return vertices.size();
 }
 
-
+//------------------------------------------------------------------------------
 Vertex* OBJModel::verts()
 {
-	return NULL;
+	return vertices.data();
+}
+
+//------------------------------------------------------------------------------
+//    ___        _
+//   | __|_ _ __| |_ ___ _ _ _  _
+//   | _/ _` / _|  _/ _ \ '_| || |
+//   |_|\__,_\__|\__\___/_|  \_, |
+//                           |__/
+Model* ModelFactory::get_model(std::string path)
+{
+	static std::map<std::string, Model*> _cached_models;
+
+	// try to open this file
+	int fd = open(path.c_str(), O_RDONLY);
+	if(fd < 0)
+	{
+		fprintf(stderr, "Failed to open '%s'\n", path.c_str());
+		return NULL;
+	}
+
+	// Find this path's file ext
+	const char* ext = NULL;
+	for(int i = path.length() - 1; path.at(i); i--) if(path.at(i) == '.')
+	{
+		ext = path.c_str() + i + 1;
+		break;
+	}
+	if(ext == NULL) return NULL;
+
+	int matched_ext = -1;
+	const std::string exts[] = { "stl", "obj" };
+	for(int i = 2; i--;)
+	{
+		if(strcmp(exts[i].c_str(), ext) == 0)
+		{
+			matched_ext = i;
+			break;
+		}
+	}
+
+	if(_cached_models.count(path) == 0)
+	{
+		switch (matched_ext)
+		{
+			case 0:
+				_cached_models[path] = new STLModel(fd);
+				break;
+			case 1:
+				_cached_models[path] = new OBJModel(fd);
+				break;
+		}
+	}
+
+	return _cached_models[path];
 }

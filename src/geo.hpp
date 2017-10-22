@@ -54,6 +54,8 @@ struct STLModel : Model
 	STLModel(int fd);
 	~STLModel();
 	dGeomID create_collision_geo(dSpaceID ode_space);
+	unsigned int vert_count();
+	Vertex* verts();
 
 	Vec3 min_position();
 	Vec3 max_position();
@@ -63,13 +65,10 @@ private:
 	unsigned int* _indices;
 };
 //------------------------------------------------------------------------------
-class STLFactory
+class ModelFactory
 {
-private:
-	static std::map<std::string, STLModel> _cached_models;
-
 public:
-	static STLModel* get_model(const char* path);
+	static Model* get_model(std::string path);
 };
 //------------------------------------------------------------------------------
 struct OBJModel : Model
@@ -83,10 +82,11 @@ struct OBJModel : Model
 
 	dTriMeshDataID ode_tri_mesh_dat;
 private:
-	unsigned int _vert_count, _pos_count, _norm_count, _tex_count;
-	Vec3 *positions, *normals;
-	Vec3 *texture;
-	Vertex* vertices;
+	std::vector<Vec3> positions;
+	std::vector<Vec3> tex_coords;
+	std::vector<Vec3> normals;
+	std::vector<Vec3> params;
+	std::vector<Vertex> vertices;
 };
 
 }

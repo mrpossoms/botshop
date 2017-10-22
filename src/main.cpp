@@ -120,24 +120,27 @@ int main(int argc, char* argv[])
 		"position", "normal", NULL
 	};
 	GLint prog = program(
-		load_shader("resources/basic.vsh", GL_VERTEX_SHADER),
-		load_shader("resources/basic.fsh", GL_FRAGMENT_SHADER),
+		load_shader("basic.vsh", GL_VERTEX_SHADER),
+		load_shader("basic.fsh", GL_FRAGMENT_SHADER),
 		attrs
 	);
 
 
-	botshop::OBJModel mod(open("resources/default.obj", O_RDONLY));
+	printf("%s\n", getwd(NULL));
+	// int fd = open("./untitled.obj", O_RDONLY);
+	// printf("%d\n", errno);
+	// botshop::OBJModel mod(fd);
 
 	dInitODE2(0);
 	dWorldID world = dWorldCreate();
 	dSpaceID space = dHashSpaceCreate(0);
 
-	botshop::Form box(world, space, NULL);
+	botshop::Form box(world, space, botshop::ModelFactory::get_model("untitled.obj"));
 	botshop::Camera cam(world, space, M_PI / 2, 160, 120);
 
-	box.is_a_box(1, 1, 1)
-	 ->position(0, 0, 1)
-	 ->add_all();
+	// box.is_a_box(1, 1, 1)
+	//  ->position(0, 0, 1)
+	//  ->add_all();
 
 	cam.is_a_sphere(0.05)->add_all();
 
@@ -152,7 +155,7 @@ int main(int argc, char* argv[])
 	{
 		dWorldStep(world, 0.05);
 
-		box.draw(world_uniform);
+		// box.draw(world_uniform);
 
 		glfwPollEvents();
 		glfwSwapBuffers(win);
