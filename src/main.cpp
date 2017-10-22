@@ -138,24 +138,26 @@ int main(int argc, char* argv[])
 	botshop::Form box(world, space, botshop::ModelFactory::get_model("untitled.obj"));
 	botshop::Camera cam(world, space, M_PI / 2, 160, 120);
 
-	// box.is_a_box(1, 1, 1)
-	//  ->position(0, 0, 1)
-	//  ->add_all();
+	box.is_a_box(1, 1, 1)
+	 ->position(0, 0, 1)
+	 ->add_all();
 
 	cam.is_a_sphere(0.05)->add_all();
 
 	dWorldSetGravity (world,0,0,-0.5);
 
 	mat4x4 vp;
-	cam.view_projection(vp);
-	glUniformMatrix4fv(glGetUniformLocation(prog, "view_projection"), 1, GL_FALSE, (GLfloat*)vp);
 	GLint world_uniform = glGetUniformLocation(prog, "world");
+	GLint vp_uniform = glGetUniformLocation(prog, "view_projection");
 
 	while(!glfwWindowShouldClose(win))
 	{
 		dWorldStep(world, 0.05);
 
-		// box.draw(world_uniform);
+		cam.view_projection(vp);
+		glUniformMatrix4fv(vp_uniform, 1, GL_FALSE, (GLfloat*)vp);
+
+		box.draw(world_uniform);
 
 		glfwPollEvents();
 		glfwSwapBuffers(win);
