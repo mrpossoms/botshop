@@ -170,6 +170,22 @@ int main(int argc, char* argv[])
 	GLint world_uniform = glGetUniformLocation(prog, "world");
 	GLint vp_uniform = glGetUniformLocation(prog, "view_projection");
 
+	// static const GLfloat g_vertex_buffer_data[] = {
+	// 	-1.0f, -1.0f, 0.0f,
+	// 	 0, 0, 0,
+	// 	 1.0f, -1.0f, 0.0f,
+	// 	 0, 0, 0,
+	// 	 0.0f,  1.0f, 0.0f,
+	// 	 0, 0, 0,
+	// };
+	//
+	// GLuint vertexbuffer;
+	// glGenBuffers(1, &vertexbuffer);
+	// glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	// glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+
+	printf("sizeof: %d\n", sizeof(botshop::Vertex));
+
 	while(!glfwWindowShouldClose(win))
 	{
 		dWorldStep(world, 0.05);
@@ -178,6 +194,33 @@ int main(int argc, char* argv[])
 
 		cam.view_projection(vp);
 		glUniformMatrix4fv(vp_uniform, 1, GL_FALSE, (GLfloat*)vp);
+
+		// glEnableVertexAttribArray(0);
+		// glEnableVertexAttribArray(1);
+		// glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+		// glVertexAttribPointer(
+		// 	0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+		// 	3,                  // size
+		// 	GL_FLOAT,           // type
+		// 	GL_FALSE,           // normalized?
+		// 	sizeof(float) * 6,                  // stride
+		// 	(void*)0            // array buffer offset
+		// );
+		// glVertexAttribPointer(
+		// 	1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+		// 	3,                  // size
+		// 	GL_FLOAT,           // type
+		// 	GL_FALSE,           // normalized?
+		// 	sizeof(float) * 6,                  // stride
+		// 	(void*)(sizeof(float) * 3)            // array buffer offset
+		// );
+		//
+		// // Draw the triangle !
+		// glDrawArrays(GL_TRIANGLES, 0, 3); // 3 indices starting at 0 -> 1 triangle
+		//
+		// glDisableVertexAttribArray(0);
+		// glDisableVertexAttribArray(1);
+
 
 		box.draw(world_uniform);
 

@@ -27,9 +27,9 @@ struct STLVert
 
 struct Vertex
 {
-	Vec3 position;
-	Vec3 normal;
-	Vec3 texture;
+	vec3 position;
+	vec3 normal;
+	vec3 texture;
 };
 
 struct Model

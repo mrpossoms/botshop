@@ -53,12 +53,12 @@ STLModel::STLModel(int fd)
 
 		// Copy positions and normals into contiguious array
 		// for rendering
-		all_verts[(i * 3) + 0].position = tri->verts[0];
-		all_verts[(i * 3) + 0].normal   = *tri->normal;
-		all_verts[(i * 3) + 1].position = tri->verts[1];
-		all_verts[(i * 3) + 1].normal   = *tri->normal;
-		all_verts[(i * 3) + 2].position = tri->verts[2];
-		all_verts[(i * 3) + 2].normal   = *tri->normal;
+		vec3_copy(all_verts[(i * 3) + 0].position , tri->verts[0].v);
+		vec3_copy(all_verts[(i * 3) + 0].normal   , tri->normal->v);
+		vec3_copy(all_verts[(i * 3) + 1].position , tri->verts[1].v);
+		vec3_copy(all_verts[(i * 3) + 1].normal   , tri->normal->v);
+		vec3_copy(all_verts[(i * 3) + 2].position , tri->verts[2].v);
+		vec3_copy(all_verts[(i * 3) + 2].normal   , tri->normal->v);
 	}
 }
 //------------------------------------------------------------------------------
@@ -326,9 +326,9 @@ OBJModel::OBJModel(int fd)
 				for(int i = 0; i < 3; ++i)
 				{
 					Vertex v = {};
-					if(l.face.pos_idx[i]) v.position = positions[l.face.pos_idx[i] - 1];
-					if(l.face.tex_idx[i]) v.texture = tex_coords[l.face.tex_idx[i] - 1];
-					if(l.face.norm_idx[i]) v.normal = normals[l.face.norm_idx[i] - 1];
+					if(l.face.pos_idx[i]) vec3_copy(v.position, positions[l.face.pos_idx[i] - 1].v);
+					if(l.face.tex_idx[i]) vec3_copy(v.texture, tex_coords[l.face.tex_idx[i] - 1].v);
+					if(l.face.norm_idx[i]) vec3_copy(v.normal, normals[l.face.norm_idx[i] - 1].v);
 
 					vertices.push_back(v);
 				}
