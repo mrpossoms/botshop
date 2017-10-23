@@ -1,13 +1,7 @@
-//
-//  Shader.vsh
-//  OPjectiveExample
-//
-//  Created by Kirk Roerig on 8/20/14.
-//  Copyright (c) 2014 OPifex. All rights reserved.
-//
+#version 330 core
 
-attribute vec3 position;
-attribute vec3 normal;
+layout(location = 0) in vec3 position;
+layout(location = 1) in vec3 normal;
 
 uniform mat4 view_projection;
 uniform mat4 world;

@@ -15,6 +15,12 @@ GLFWwindow* init_glfw()
 		exit(-1);
 	}
 
+	glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
 	GLFWwindow* win = glfwCreateWindow(640, 480, "botshop", NULL, NULL);
 
 	if (!win){
@@ -118,8 +124,10 @@ GLint program(GLint vertex, GLint frag, const char** attributes)
 
 int main(int argc, char* argv[])
 {
-	GLFWwindow* win = init_glfw();
 	char buf[1024];
+	getcwd(buf, 1024);
+	printf("%s\n", buf);
+	GLFWwindow* win = init_glfw();
 	getcwd(buf, 1024);
 	printf("%s\n", buf);
 
@@ -127,11 +135,12 @@ int main(int argc, char* argv[])
 		"position", "normal", NULL
 	};
 	GLint prog = program(
-		load_shader("resources/basic.vsh", GL_VERTEX_SHADER),
-		load_shader("resources/basic.fsh", GL_FRAGMENT_SHADER),
+		load_shader("data/basic.vsh", GL_VERTEX_SHADER),
+		load_shader("data/basic.fsh", GL_FRAGMENT_SHADER),
 		attrs
 	);
 
+	glDisable(GL_CULL_FACE);
 
 	// int fd = open("./untitled.obj", O_RDONLY);
 	// printf("%d\n", errno);
@@ -141,7 +150,7 @@ int main(int argc, char* argv[])
 	dWorldID world = dWorldCreate();
 	dSpaceID space = dHashSpaceCreate(0);
 
-	botshop::Form box(world, space, botshop::ModelFactory::get_model("resources/untitled.obj"));
+	botshop::Form box(world, space, botshop::ModelFactory::get_model("data/untitled.obj"));
 	botshop::Camera cam(world, space, M_PI / 2, 160, 120);
 
 	box.is_a_box(1, 1, 1)
@@ -154,6 +163,9 @@ int main(int argc, char* argv[])
 
 	dWorldSetGravity (world,0,0,-0.5);
 
+	glUseProgram(prog);
+
+
 	mat4x4 vp;
 	GLint world_uniform = glGetUniformLocation(prog, "world");
 	GLint vp_uniform = glGetUniformLocation(prog, "view_projection");
@@ -161,6 +173,8 @@ int main(int argc, char* argv[])
 	while(!glfwWindowShouldClose(win))
 	{
 		dWorldStep(world, 0.05);
+
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		cam.view_projection(vp);
 		glUniformMatrix4fv(vp_uniform, 1, GL_FALSE, (GLfloat*)vp);

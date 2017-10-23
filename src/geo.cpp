@@ -264,6 +264,8 @@ bool parse_line(int fd, ObjLine& line)
 
 				idx_token += strlen(idx_token) + 1;
 			}
+
+			// printf("%d/%d/%d\n", line.face.pos_idx[i], line.face.tex_idx[i], line.face.norm_idx[i]);
 		}
 			break;
 		default:;
@@ -273,7 +275,7 @@ bool parse_line(int fd, ObjLine& line)
 	for(int i = 0; i < vec_size; ++i)
 	{
 		token = strtok_r(NULL, " ", &save_ptr);
-		printf("type: %d TOK: '%s' %d\n", line.type, token, vec_size);
+		// printf("type: %d TOK: '%s' %d\n", line.type, token, vec_size);
 		sscanf(token, "%f", v + i);
 	}
 
@@ -289,11 +291,10 @@ OBJModel::OBJModel(int fd)
 		switch (l.type)
 		{
 			case COMMENT:
-				printf("%s\n", l.str);
+				// printf("%s\n", l.str);
 				break;
 			case POSITION:
 			{
-				printf("p %f %f %f\n", l.position[0], l.position[1], l.position[2]);
 				Vec3 p(l.position[0], l.position[1], l.position[2]);
 				positions.push_back(p);
 			}
@@ -306,7 +307,7 @@ OBJModel::OBJModel(int fd)
 				break;
 			case NORMAL:
 			{
-				printf("n %f %f %f\n", l.normal[0], l.normal[1], l.normal[2]);
+				// printf("n %f %f %f\n", l.normal[0], l.normal[1], l.normal[2]);
 				Vec3 n(l.normal[0], l.normal[1], l.normal[2]);
 				normals.push_back(n);
 			}
@@ -318,15 +319,20 @@ OBJModel::OBJModel(int fd)
 			}
 				break;
 			case FACE:
-				printf("FACE\n");
-				for(int i = 3; i--;)
+			{
+				// printf("FACE\n");
+
+
+				for(int i = 0; i < 3; ++i)
 				{
 					Vertex v = {};
+					if(l.face.pos_idx[i]) v.position = positions[l.face.pos_idx[i] - 1];
+					if(l.face.tex_idx[i]) v.texture = tex_coords[l.face.tex_idx[i] - 1];
+					if(l.face.norm_idx[i]) v.normal = normals[l.face.norm_idx[i] - 1];
 
-					if(l.face.pos_idx[i]) v.position = positions[l.face.pos_idx[i]];
-					if(l.face.tex_idx[i]) v.texture = tex_coords[l.face.tex_idx[i]];
-					if(l.face.norm_idx[i]) v.normal = normals[l.face.norm_idx[i]];
+					vertices.push_back(v);
 				}
+			}
 				break;
 			case UNKNOWN:
 				break;

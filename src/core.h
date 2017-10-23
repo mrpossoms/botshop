@@ -15,10 +15,12 @@
 
 // project libs
 #ifdef __LINUX__
-#include <GLFW/glfw3.h>
 #include <GL/glx.h>
 #include <GL/glext.h>
 #endif
+#include <OpenGL/gl3.h>
+#include <GLFW/glfw3.h>
+// #include <GL/glew.h>
 #include <ode/ode.h>
 #include <linmath.h>
 #include "constants.h"
