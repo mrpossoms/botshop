@@ -16,6 +16,7 @@ Camera::Camera(dWorldID world,
 
 void Camera::view_projection(mat4x4 vp)
 {
-	matrix(vp);
-	mat4x4_mul(vp, vp, projection);
+	mat4x4 view;
+	matrix(view);
+	mat4x4_mul(vp, projection, view);
 }

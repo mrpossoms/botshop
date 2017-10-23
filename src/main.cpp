@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
 	botshop::Camera cam(world, space, M_PI / 2, 160, 120);
 
 	box.is_a_box(1, 1, 1)
-	 ->position(2, 0, 0)
+	 ->position(0, -2, 0)
 	 ->add_all();
 
 	cam.is_a_sphere(0.05)

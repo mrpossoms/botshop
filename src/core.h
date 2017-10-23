@@ -17,9 +17,8 @@
 #ifdef __LINUX__
 #include <GL/glx.h>
 #include <GL/glext.h>
-#include <OpenGL/gl3.h>
 #else
-
+#include <OpenGL/gl3.h>
 #endif
 #include <GLFW/glfw3.h>
 // #include <GL/glew.h>
