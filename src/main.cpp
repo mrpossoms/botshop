@@ -145,12 +145,24 @@ int main(int argc, char* argv[])
 	dWorldID world = dWorldCreate();
 	dSpaceID space = dHashSpaceCreate(0);
 
-	botshop::Form box(world, space, botshop::ModelFactory::get_model("data/untitled.obj"));
+	botshop::Form box0(world, space, botshop::ModelFactory::get_model("data/untitled.obj"));
+	botshop::Form box1(world, space, botshop::ModelFactory::get_model("data/untitled.obj"));
+	botshop::Form box2(world, space, botshop::ModelFactory::get_model("data/untitled.obj"));
+
+
 	botshop::Camera cam(world, space, M_PI / 4, 160, 120);
 
-	box.is_a_box(1, 1, 1)
+	box0.is_a_box(1, 1, 1)
 	 ->position(0, 0, -10)
 	 ->add_all();
+
+	 box1.is_a_box(1, 1, 1)
+ 	 ->position(0, 0, 10)
+ 	 ->add_all();
+
+	 box2.is_a_box(1, 1, 1)
+ 	 ->position(10, 0, 0)
+ 	 ->add_all();
 
 	cam.is_a_sphere(0.05)
 		->position(0, 0, 0)
@@ -179,8 +191,10 @@ int main(int argc, char* argv[])
 	// glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	// glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
- 	cam.torque(0, 0.1, 0);
-	cam.force(1, 0, 0);
+ 	cam.torque(0, 2, 0);
+
+ 	box0.torque(1, 2, 3);
+	//cam.force(1, 0, 0);
 
 	while(!glfwWindowShouldClose(win))
 	{
@@ -191,7 +205,9 @@ int main(int argc, char* argv[])
 		cam.view_projection(vp);
 		glUniformMatrix4fv(vp_uniform, 1, GL_FALSE, (GLfloat*)vp);
 
-		box.draw(world_uniform);
+		box0.draw(world_uniform);
+		box1.draw(world_uniform);
+		box2.draw(world_uniform);
 
 		glfwPollEvents();
 		glfwSwapBuffers(win);
