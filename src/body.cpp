@@ -153,6 +153,13 @@ Body* Body::force(Vec3& f)
 }
 
 //------------------------------------------------------------------------------
+Body* Body::force(float x, float y, float z)
+{
+	dBodyAddRelForce(ode_body, x, y, z);
+	return this;
+}
+
+//------------------------------------------------------------------------------
 Vec3 Body::torque()
 {
 	const dReal* t = dBodyGetTorque(ode_body);
@@ -164,6 +171,13 @@ Vec3 Body::torque()
 Body* Body::torque(Vec3& t)
 {
 	dBodyAddRelTorque(ode_body, t.x, t.y, t.z);
+	return this;
+}
+
+//------------------------------------------------------------------------------
+Body* Body::torque(float x, float y, float z)
+{
+	dBodyAddRelTorque(ode_body, x, y, z);
 	return this;
 }
 

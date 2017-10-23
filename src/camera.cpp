@@ -17,6 +17,10 @@ Camera::Camera(dWorldID world,
 void Camera::view_projection(mat4x4 vp)
 {
 	mat4x4 view;
-	matrix(view);
+
+	Vec3 pos = position();
+	mat4x4_from_quat(view, orientation().v);
+	mat4x4_translate(view, -pos.x, -pos.y, -pos.z);
+
 	mat4x4_mul(vp, projection, view);
 }

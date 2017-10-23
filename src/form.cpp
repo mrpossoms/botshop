@@ -8,12 +8,6 @@ Form::Form(dWorldID world, dSpaceID space, Model* mesh) : Body(world, space)
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-	for(int i = 0; i < mesh->vert_count(); ++i)
-	{
-		botshop::Vertex* v = mesh->verts() + i;
-		printf("%f %f %f\n", v->position[0], v->position[1], v->position[2]);
-	}
-
 	glBufferData(
 		GL_ARRAY_BUFFER,
 		mesh->vert_count() * sizeof(Vertex),
@@ -34,7 +28,7 @@ Form::~Form()
 void Form::draw(GLint world_uniform)
 {
 	glEnableVertexAttribArray(0);
-	// glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(1);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 

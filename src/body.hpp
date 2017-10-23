@@ -57,8 +57,10 @@ class Body : Dynamic
 
 		Vec3 force();
 		Body* force(Vec3& force);
+		Body* force(float x, float y, float z);
 
 		Vec3 torque();
+		Body* torque(float x, float y, float z);
 		Body* torque(Vec3& torque);
 
 		dMass mass();

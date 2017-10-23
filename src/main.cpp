@@ -124,12 +124,7 @@ GLint program(GLint vertex, GLint frag, const char** attributes)
 
 int main(int argc, char* argv[])
 {
-	char buf[1024];
-	getcwd(buf, 1024);
-	printf("%s\n", buf);
 	GLFWwindow* win = init_glfw();
-	getcwd(buf, 1024);
-	printf("%s\n", buf);
 
 	const char* attrs[] = {
 		"position", "normal", NULL
@@ -151,17 +146,17 @@ int main(int argc, char* argv[])
 	dSpaceID space = dHashSpaceCreate(0);
 
 	botshop::Form box(world, space, botshop::ModelFactory::get_model("data/untitled.obj"));
-	botshop::Camera cam(world, space, M_PI / 2, 160, 120);
+	botshop::Camera cam(world, space, M_PI / 4, 160, 120);
 
 	box.is_a_box(1, 1, 1)
-	 ->position(0, -2, 0)
+	 ->position(0, 0, -10)
 	 ->add_all();
 
 	cam.is_a_sphere(0.05)
 		->position(0, 0, 0)
 		->add_all();
 
-	dWorldSetGravity (world,0,0,-0.5);
+	dWorldSetGravity (world,0, 0, -9.8);
 
 	glUseProgram(prog);
 
@@ -184,7 +179,8 @@ int main(int argc, char* argv[])
 	// glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	// glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
-	printf("sizeof: %d\n", sizeof(botshop::Vertex));
+ 	cam.torque(0, 0.1, 0);
+	cam.force(1, 0, 0);
 
 	while(!glfwWindowShouldClose(win))
 	{
@@ -194,33 +190,6 @@ int main(int argc, char* argv[])
 
 		cam.view_projection(vp);
 		glUniformMatrix4fv(vp_uniform, 1, GL_FALSE, (GLfloat*)vp);
-
-		// glEnableVertexAttribArray(0);
-		// glEnableVertexAttribArray(1);
-		// glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-		// glVertexAttribPointer(
-		// 	0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-		// 	3,                  // size
-		// 	GL_FLOAT,           // type
-		// 	GL_FALSE,           // normalized?
-		// 	sizeof(float) * 6,                  // stride
-		// 	(void*)0            // array buffer offset
-		// );
-		// glVertexAttribPointer(
-		// 	1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-		// 	3,                  // size
-		// 	GL_FLOAT,           // type
-		// 	GL_FALSE,           // normalized?
-		// 	sizeof(float) * 6,                  // stride
-		// 	(void*)(sizeof(float) * 3)            // array buffer offset
-		// );
-		//
-		// // Draw the triangle !
-		// glDrawArrays(GL_TRIANGLES, 0, 3); // 3 indices starting at 0 -> 1 triangle
-		//
-		// glDisableVertexAttribArray(0);
-		// glDisableVertexAttribArray(1);
-
 
 		box.draw(world_uniform);
 
