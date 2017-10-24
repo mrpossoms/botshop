@@ -307,26 +307,26 @@ OBJModel::OBJModel(int fd)
 				break;
 			case POSITION:
 			{
-				Vec3 p(l.position[0], l.position[1], l.position[2]);
+				vec3_t p = { l.position[0], l.position[1], l.position[2] };
 				positions.push_back(p);
 			}
 				break;
 			case TEXTURE:
 			{
-				Vec3 t(l.texture[0], l.texture[1], l.texture[2]);
+				vec3_t t = { l.texture[0], l.texture[1], l.texture[2] };
 				tex_coords.push_back(t);
 			}
 				break;
 			case NORMAL:
 			{
-				// printf("n %f %f %f\n", l.normal[0], l.normal[1], l.normal[2]);
-				Vec3 n(l.normal[0], l.normal[1], l.normal[2]);
+				// printf("n %f %f %f\n", l.normal[0], l.normal[1], l.normal[2] };
+				vec3_t n = { l.normal[0], l.normal[1], l.normal[2] };
 				normals.push_back(n);
 			}
 				break;
 			case PARAMETER:
 			{
-				Vec3 p(l.parameter[0], l.parameter[1], l.parameter[2]);
+				vec3_t p = { l.parameter[0], l.parameter[1], l.parameter[2] };
 				params.push_back(p);
 			}
 				break;
@@ -343,6 +343,7 @@ OBJModel::OBJModel(int fd)
 					if(l.face.norm_idx[i]) vec3_copy(v.normal, normals[l.face.norm_idx[i] - 1].v);
 
 					vertices.push_back(v);
+					indices.push_back(l.face.pos_idx[i]);
 				}
 			}
 				break;
@@ -361,18 +362,14 @@ OBJModel::~OBJModel()
 //------------------------------------------------------------------------------
 dGeomID OBJModel::create_collision_geo(dSpaceID ode_space)
 {
-	unsigned int indices[positions.size()];
+	ode_tri_mesh_dat = dGeomTriMeshDataCreate();
 
-	for(int i = 0; i < positions.size(); ++i) indices[i] = i;
-
-	dGeomTriMeshDataBuildSingle(
+	dGeomTriMeshDataBuildSimple(
 		ode_tri_mesh_dat,
-		positions.data(),     // verts
-		sizeof(Vec3),    // vert stride
+		(const dReal*)positions.data(),     // verts
 		positions.size(),      // vert count
-		indices,        // indicies
-		positions.size(),      // ind count
-		sizeof(unsigned int) * 3 // tri ind stride
+		(const dTriIndex*)indices.data(),        // indicies
+		indices.size()      // ind count
 	);
 
 	return dCreateTriMesh(ode_space, ode_tri_mesh_dat, 0, 0, 0);

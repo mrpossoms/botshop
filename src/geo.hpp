@@ -70,12 +70,14 @@ private:
 	Vec3 *_min, *_max;
 	unsigned int* _indices;
 };
+
 //------------------------------------------------------------------------------
 class ModelFactory
 {
 public:
 	static Model* get_model(std::string path);
 };
+
 //------------------------------------------------------------------------------
 struct OBJModel : Model
 {
@@ -88,11 +90,19 @@ struct OBJModel : Model
 
 	dTriMeshDataID ode_tri_mesh_dat;
 private:
-	std::vector<Vec3> positions;
-	std::vector<Vec3> tex_coords;
-	std::vector<Vec3> normals;
-	std::vector<Vec3> params;
+	std::vector<vec3_t> positions;
+	std::vector<vec3_t> tex_coords;
+	std::vector<vec3_t> normals;
+	std::vector<vec3_t> params;
+	std::vector<int> indices;
 	std::vector<Vertex> vertices;
+};
+
+//------------------------------------------------------------------------------
+struct Plane : Model
+{
+	Plane();
+	~Plane();
 };
 
 }

@@ -44,6 +44,7 @@ class Body : Dynamic
 		Body* is_a_box(float width, float height, float length);
 		Body* is_a_sphere(float radius);
 		Body* is_a_mesh(Model& model);
+		Body* is_a_mesh(Model* model);
 
 		// Dynamic Interface
 		Vec3 position();

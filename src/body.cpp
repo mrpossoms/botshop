@@ -27,8 +27,6 @@ Body::~Body()
 
 Body* Body::add_all()
 {
-	dSpaceAdd(space, ode_geo);
-
 	for(Body* body : welded_children)
 	{
 		body->add_all();
@@ -51,7 +49,7 @@ Body* Body::remove_all()
 
 Body* Body::attach(Body* body)
 {
-	
+
 }
 //------------------------------------------------------------------------------
 
@@ -69,7 +67,8 @@ Body* Body::is_a_box(float width, float height, float length)
 	ode_geo = dCreateBox(0, length, width, height);
 	dMassSetBox(&ode_mass, 1, length, width, height);
 	dGeomSetBody(ode_geo, ode_body);
-
+	dSpaceAdd(space, ode_geo);
+	
 	return this;
 }
 //------------------------------------------------------------------------------
@@ -79,6 +78,7 @@ Body* Body::is_a_sphere(float radius)
 	ode_geo = dCreateSphere(0, radius);
 	dMassSetSphere(&ode_mass, 1, radius);
 	dGeomSetBody(ode_geo, ode_body);
+	dSpaceAdd(space, ode_geo);
 
 	return this;
 }
@@ -88,7 +88,14 @@ Body* Body::is_a_mesh(Model& model)
 	ode_geo = model.create_collision_geo(space);
 	dMassSetTrimesh(&ode_mass, 1, ode_geo);
 	dGeomSetBody(ode_geo, ode_body);
-	//dMassSetTrimesh(model.)
+	return this;
+}
+//------------------------------------------------------------------------------
+Body* Body::is_a_mesh(Model* model)
+{
+	ode_geo = model->create_collision_geo(space);
+	dMassSetTrimesh(&ode_mass, 1, ode_geo);
+	dGeomSetBody(ode_geo, ode_body);
 	return this;
 }
 //------------------------------------------------------------------------------

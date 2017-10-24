@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
 	botshop::Camera cam(world, space, M_PI / 4, 160, 120);
 
 	Vec3 car_dims = car_model->box_dimensions();
-	car_body.is_a_box(car_dims.x, car_dims.y, car_dims.z)
+	car_body.is_a_mesh(car_model)
 	 ->position(0, 0, -1)
 	 ->add_all();
 
