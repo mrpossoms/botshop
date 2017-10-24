@@ -145,15 +145,18 @@ int main(int argc, char* argv[])
 	dWorldID world = dWorldCreate();
 	dSpaceID space = dHashSpaceCreate(0);
 
-	botshop::Form box0(world, space, botshop::ModelFactory::get_model("data/untitled.obj"));
+
+	botshop::Model* car_model = botshop::ModelFactory::get_model("data/car_body.obj");
+	botshop::Form car_body(world, space, car_model);
 	botshop::Form box1(world, space, botshop::ModelFactory::get_model("data/untitled.obj"));
 	botshop::Form box2(world, space, botshop::ModelFactory::get_model("data/untitled.obj"));
 
 
 	botshop::Camera cam(world, space, M_PI / 4, 160, 120);
 
-	box0.is_a_box(1, 1, 1)
-	 ->position(0, 0, -10)
+	Vec3 car_dims = car_model->box_dimensions();
+	car_body.is_a_box(car_dims.x, car_dims.y, car_dims.z)
+	 ->position(0, 0, -1)
 	 ->add_all();
 
 	 box1.is_a_box(1, 1, 1)
@@ -193,7 +196,7 @@ int main(int argc, char* argv[])
 
  	cam.torque(0, 2, 0);
 
- 	box0.torque(1, 2, 3);
+ 	car_body.torque(1, 2, 3);
 	//cam.force(1, 0, 0);
 
 	while(!glfwWindowShouldClose(win))
@@ -205,7 +208,7 @@ int main(int argc, char* argv[])
 		cam.view_projection(vp);
 		glUniformMatrix4fv(vp_uniform, 1, GL_FALSE, (GLfloat*)vp);
 
-		box0.draw(world_uniform);
+		car_body.draw(world_uniform);
 		box1.draw(world_uniform);
 		box2.draw(world_uniform);
 

@@ -37,6 +37,12 @@ struct Model
 	virtual dGeomID create_collision_geo(dSpaceID ode_space) = 0;
 	virtual unsigned int vert_count() = 0;
 	virtual Vertex* verts() = 0;
+
+	Vec3 *_min, *_max;
+
+	Vec3 min_position();
+	Vec3 max_position();
+	Vec3 box_dimensions();
 };
 
 struct STLModel : Model

@@ -49,6 +49,12 @@ Body* Body::remove_all()
 }
 //------------------------------------------------------------------------------
 
+Body* Body::attach(Body* body)
+{
+	
+}
+//------------------------------------------------------------------------------
+
 Body* Body::attach(const Joint* joint)
 {
 	dJointAttach(joint->ode_joint, ode_body, joint->body->ode_body);

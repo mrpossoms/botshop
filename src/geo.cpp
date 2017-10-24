@@ -2,6 +2,58 @@
 
 using namespace botshop;
 
+
+Vec3 Model::min_position()
+{
+	if(_min) return *_min;
+	Vertex* v = verts();
+	_min = new Vec3(v->position[0], v->position[1], v->position[2]);
+
+	for(int i = vert_count(); i--;)
+	{
+		for(int j = 3; j--;)
+		{
+			if(v[i].position[j] < _min->v[j])
+			{
+				_min->v[j] = v[i].position[j];
+			}
+		}
+	}
+
+	return *_min;
+}
+
+//------------------------------------------------------------------------------
+Vec3 Model::max_position()
+{
+	if(_max) return *_max;
+	Vertex* v = verts();
+	_max = new Vec3(v->position[0], v->position[1], v->position[2]);
+
+	for(int i = vert_count(); i--;)
+	{
+		for(int j = 3; j--;)
+		{
+			if(v[i].position[j] > _max->v[j])
+			{
+				_max->v[j] = v[i].position[j];
+			}
+		}
+	}
+
+	return *_max;
+}
+
+
+//------------------------------------------------------------------------------
+Vec3 Model::box_dimensions()
+{
+	Vec3 min = min_position();
+	Vec3 max = max_position();
+	return max - min;
+}
+
+
 //------------------------------------------------------------------------------
 //    ___ _____ _
 //   / __|_   _| |
@@ -87,46 +139,6 @@ dGeomID STLModel::create_collision_geo(dSpaceID ode_space)
 	);
 
 	return dCreateTriMesh(ode_space, ode_tri_mesh_dat, 0, 0, 0);
-}
-
-//------------------------------------------------------------------------------
-Vec3 STLModel::min_position()
-{
-	if(_min) return *_min;
-	_min = new Vec3(all_positions->x, all_positions->y, all_positions->z);
-
-	for(int i = tri_count * 3; i--;)
-	{
-		for(int j = 3; j--;)
-		{
-			if(all_positions[i].v[j] < _min->v[j])
-			{
-				_min->v[j] = all_positions[i].v[j];
-			}
-		}
-	}
-
-	return *_min;
-}
-
-//------------------------------------------------------------------------------
-Vec3 STLModel::max_position()
-{
-	if(_max) return *_max;
-	_max = new Vec3(all_positions->x, all_positions->y, all_positions->z);
-
-	for(int i = tri_count * 3; i--;)
-	{
-		for(int j = 3; j--;)
-		{
-			if(all_positions[i].v[j] > _max->v[j])
-			{
-				_max->v[j] = all_positions[i].v[j];
-			}
-		}
-	}
-
-	return *_max;
 }
 
 //------------------------------------------------------------------------------

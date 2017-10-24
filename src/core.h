@@ -14,7 +14,7 @@
 #include <streambuf>
 
 // project libs
-#ifdef __LINUX__
+#ifdef __linux__ 
 #include <GL/glx.h>
 #include <GL/glext.h>
 #else

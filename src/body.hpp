@@ -39,6 +39,7 @@ class Body : Dynamic
 		Body* remove_all();
 
 		Body* attach(const Joint* joint);
+		Body* attach(Body* body);
 
 		Body* is_a_box(float width, float height, float length);
 		Body* is_a_sphere(float radius);
