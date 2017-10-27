@@ -23,7 +23,7 @@ class Dynamic
 
 class Drawable
 {
-	virtual void draw(GLint world_uniform) = 0;
+	virtual void draw(GLint world_uniform, GLint norm_uniform) = 0;
 };
 
 }

@@ -49,7 +49,7 @@ Body* Body::remove_all()
 
 Body* Body::attach(Body* body)
 {
-
+	return NULL;
 }
 //------------------------------------------------------------------------------
 
@@ -68,7 +68,7 @@ Body* Body::is_a_box(float width, float height, float length)
 	dMassSetBox(&ode_mass, 1, length, width, height);
 	dGeomSetBody(ode_geo, ode_body);
 	dSpaceAdd(space, ode_geo);
-	
+
 	return this;
 }
 //------------------------------------------------------------------------------
@@ -223,6 +223,12 @@ void Body::matrix(mat4x4 world)
 	Vec3 pos = position();
 	mat4x4_from_quat(world, orientation().v);
 	mat4x4_translate(world, pos.x, pos.y, pos.z);
+}
+//------------------------------------------------------------------------------
+
+void Body::rotation(mat3x3 rotation)
+{
+	mat3x3_from_quat(rotation, orientation().v);
 }
 //------------------------------------------------------------------------------
 

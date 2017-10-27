@@ -155,6 +155,9 @@ int main(int argc, char* argv[])
 	botshop::Camera cam(world, space, M_PI / 4, 160, 120);
 
 	Vec3 car_dims = car_model->box_dimensions();
+
+	printf("%f %f %f\n", car_dims.x, car_dims.y, car_dims.z);
+
 	car_body.is_a_mesh(car_model)
 	 ->position(0, 0, -1)
 	 ->add_all();
@@ -176,9 +179,13 @@ int main(int argc, char* argv[])
 	glUseProgram(prog);
 
 
-	mat4x4 vp;
+	mat4x4 proj, view;
 	GLint world_uniform = glGetUniformLocation(prog, "world");
-	GLint vp_uniform = glGetUniformLocation(prog, "view_projection");
+	GLint norm_uniform  = glGetUniformLocation(prog, "normal_matrix");
+
+	GLint v_uniform     = glGetUniformLocation(prog, "view");
+	GLint p_uniform     = glGetUniformLocation(prog, "projection");
+
 
 	// static const GLfloat g_vertex_buffer_data[] = {
 	// 	-1.0f, -1.0f, 0.0f,
@@ -205,12 +212,13 @@ int main(int argc, char* argv[])
 
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		cam.view_projection(vp);
-		glUniformMatrix4fv(vp_uniform, 1, GL_FALSE, (GLfloat*)vp);
+		cam.projection(proj)->view(view);
+		glUniformMatrix4fv(v_uniform, 1, GL_FALSE, (GLfloat*)view);
+		glUniformMatrix4fv(p_uniform, 1, GL_FALSE, (GLfloat*)proj);
 
-		car_body.draw(world_uniform);
-		box1.draw(world_uniform);
-		box2.draw(world_uniform);
+		car_body.draw(world_uniform, norm_uniform);
+		box1.draw(world_uniform, norm_uniform);
+		box2.draw(world_uniform, norm_uniform);
 
 		glfwPollEvents();
 		glfwSwapBuffers(win);

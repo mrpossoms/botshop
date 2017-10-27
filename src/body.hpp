@@ -68,6 +68,7 @@ class Body : Dynamic
 		dMass mass();
 		Body* mass(float mass);
 
+		void rotation(mat3x3 rot);
 		void matrix(mat4x4 world);
 
 		Body* operator+(const Joint* joint);

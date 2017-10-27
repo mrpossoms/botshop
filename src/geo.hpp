@@ -29,6 +29,7 @@ struct Vertex
 {
 	vec3 position;
 	vec3 normal;
+	vec3 tangent;
 	vec3 texture;
 };
 
@@ -39,6 +40,8 @@ struct Model
 	virtual Vertex* verts() = 0;
 
 	Vec3 *_min, *_max;
+
+	void compute_tangents();
 
 	Vec3 min_position();
 	Vec3 max_position();
@@ -87,7 +90,7 @@ struct OBJModel : Model
 	dGeomID create_collision_geo(dSpaceID ode_space);
 	unsigned int vert_count();
 	Vertex* verts();
-
+	
 	dTriMeshDataID ode_tri_mesh_dat;
 private:
 	std::vector<vec3_t> positions;

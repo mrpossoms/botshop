@@ -2,7 +2,15 @@
 
 using namespace botshop;
 
+void Model::compute_tangents()
+{
+	for(int i = vert_count(); i--;)
+	{
 
+	}
+}
+
+//------------------------------------------------------------------------------
 Vec3 Model::min_position()
 {
 	if(_min) return *_min;
@@ -297,6 +305,8 @@ bool parse_line(int fd, ObjLine& line)
 //------------------------------------------------------------------------------
 OBJModel::OBJModel(int fd)
 {
+	_min = _max = NULL;
+
 	ObjLine l = {};
 	while(parse_line(fd, l))
 	{
