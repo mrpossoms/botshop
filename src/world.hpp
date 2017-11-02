@@ -1,10 +1,9 @@
 #pragma once
 #include "core.h"
+#include "geo.hpp"
 
 namespace botshop
 {
-
-class Form;
 
 class Field
 {
@@ -19,15 +18,20 @@ public:
 	~World();
 
 	void step(float dt);
-	void draw(GLint world_uniform, GLint norm_uniform);
+	void draw(DrawParams* params);
 
 	dWorldID ode_world;
 	dSpaceID ode_space;
+	dJointGroupID ode_contact_group;
+	dGeomID ground;
+
+	World* operator+=(Dynamic& dynamic);
 
 private:
-	dGeomID ground;
 	std::vector<Field> feilds;
 	std::vector<Field> forces;
+
+	std::vector<Dynamic*> bodies;
 
 	GLuint vbo;
 	Model* ground_mesh;

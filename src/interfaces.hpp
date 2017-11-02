@@ -23,10 +23,15 @@ public:
 	virtual void matrix(mat4x4 world) = 0;
 };
 
+struct DrawParams {
+	GLint world_uniform;
+	GLint norm_uniform;
+};
+
 class Drawable
 {
 public:
-	virtual void draw(GLint world_uniform, GLint norm_uniform) = 0;
+	virtual void draw(DrawParams* params) = 0;
 };
 
 }

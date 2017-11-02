@@ -159,20 +159,20 @@ int main(int argc, char* argv[])
 	// Vec3 car_dims = car_model->box_dimensions();
 	// printf("%f %f %f\n", car_dims.x, car_dims.y, car_dims.z);
 
-	car_body.is_a_mesh(car_model)
-	 ->position(0, 0, -1)
-	 ->add_all();
+	// car_body.is_a_mesh(car_model)
+	//  ->position(0, 0, 9)
+	//  ->add_all();
 
 	 box1.is_a_box(1, 1, 1)
- 	 ->position(0, 0, 10)
+ 	 ->position(-3, 0, 10)
  	 ->add_all();
 
 	 box2.is_a_box(1, 1, 1)
- 	 ->position(10, 0, 0)
+ 	 ->position(3, 0, 10)
  	 ->add_all();
 
 	cam.is_a_sphere(0.05)
-		->position(0, 0, 0)
+		->position(0, 0, 10)
 		->add_all();
 
 	glUseProgram(prog);
@@ -185,29 +185,28 @@ int main(int argc, char* argv[])
 	GLint v_uniform     = glGetUniformLocation(prog, "view");
 	GLint p_uniform     = glGetUniformLocation(prog, "projection");
 
+	// world += car_body;
+	world += box1;
+	world += box2;
+	world += cam;
 
-	// static const GLfloat g_vertex_buffer_data[] = {
-	// 	-1.0f, -1.0f, 0.0f,
-	// 	 0, 0, 0,
-	// 	 1.0f, -1.0f, 0.0f,
-	// 	 0, 0, 0,
-	// 	 0.0f,  1.0f, 0.0f,
-	// 	 0, 0, 0,
-	// };
-	//
-	// GLuint vertexbuffer;
-	// glGenBuffers(1, &vertexbuffer);
-	// glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	// glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+ // 	cam.torque(0, 5, 0);
 
- // 	cam.torque(0, 2, 0);
-
- 	car_body.torque(5, 5, 0);
+ // 	car_body.torque(5, 5, 0);
 	//cam.force(1, 0, 0);
+
+	box1.torque(1, 0, 0);
+	box2.torque(0, 1, 0);
+
+	botshop::DrawParams draw_params = {
+		.world_uniform = world_uniform,
+		.norm_uniform  = norm_uniform,
+	};
 
 	while(!glfwWindowShouldClose(win))
 	{
 		world.step(0.05);
+		cam.position(0, 0, 10);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -215,9 +214,7 @@ int main(int argc, char* argv[])
 		glUniformMatrix4fv(v_uniform, 1, GL_FALSE, (GLfloat*)view);
 		glUniformMatrix4fv(p_uniform, 1, GL_FALSE, (GLfloat*)proj);
 
-		car_body.draw(world_uniform, norm_uniform);
-		box1.draw(world_uniform, norm_uniform);
-		box2.draw(world_uniform, norm_uniform);
+		world.draw(&draw_params);
 
 		glfwPollEvents();
 		glfwSwapBuffers(win);

@@ -11,7 +11,7 @@ namespace botshop
 class Joint;
 class Body;
 
-class Body : Dynamic
+class Body : public Dynamic
 {
 	protected:
 		// used to group objects and speed up collision detection. A space will

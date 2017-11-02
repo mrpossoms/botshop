@@ -29,7 +29,7 @@ Form::~Form()
 }
 
 
-void Form::draw(GLint world_uniform, GLint norm_uniform)
+void Form::draw(DrawParams* params)
 {
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
@@ -44,8 +44,8 @@ void Form::draw(GLint world_uniform, GLint norm_uniform)
 	matrix(world);
 	rotation(rot);
 
-	glUniformMatrix4fv(world_uniform, 1, GL_FALSE, (GLfloat*)world);
-	glUniformMatrix3fv(norm_uniform, 1, GL_FALSE, (GLfloat*)rot);
+	glUniformMatrix4fv(params->world_uniform, 1, GL_FALSE, (GLfloat*)world);
+	glUniformMatrix3fv(params->norm_uniform,  1, GL_FALSE, (GLfloat*)rot);
 
 	glDrawArrays(GL_TRIANGLES, 0, mesh->vert_count());
 

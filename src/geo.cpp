@@ -194,8 +194,8 @@ Plane::Plane(float size)
 		{ { -1 * size,-1 * size,  0 } },
 
 		{ { -1 * size,-1 * size,  0 } },
-		{ {  1 * size,-1 * size,  0 } },
 		{ {  1 * size, 1 * size,  0 } },
+		{ {  1 * size,-1 * size,  0 } },
 	};
 
 	for(int i = 6; i--;)
