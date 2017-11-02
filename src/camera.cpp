@@ -2,11 +2,10 @@
 
 using namespace botshop;
 
-Camera::Camera(dWorldID world,
-	           dSpaceID space,
+Camera::Camera(World& world,
 			   float fov,
 			   int frame_w,
-			   int frame_h) : Body(world, space)
+			   int frame_h) : Body(world)
 {
 	width = frame_w;
 	height = frame_h;
@@ -41,6 +40,6 @@ Camera* Camera::view(mat4x4 v)
 Camera* Camera::projection(mat4x4 p)
 {
 	mat4x4_dup(p, _projection);
-	
+
 	return this;
 }

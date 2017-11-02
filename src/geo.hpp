@@ -18,13 +18,13 @@ struct STLTri
 	Vec3* verts;
 	uint16_t attr;
 };
-
+//------------------------------------------------------------------------------
 struct STLVert
 {
 	Vec3 position;
 	Vec3 normal;
 };
-
+//------------------------------------------------------------------------------
 struct Vertex
 {
 	vec3 position;
@@ -32,12 +32,12 @@ struct Vertex
 	vec3 tangent;
 	vec3 texture;
 };
-
+//------------------------------------------------------------------------------
 struct Model
 {
 	virtual dGeomID create_collision_geo(dSpaceID ode_space) = 0;
-	virtual unsigned int vert_count() = 0;
-	virtual Vertex* verts() = 0;
+	unsigned int vert_count();
+	Vertex* verts();
 
 	Vec3 *_min, *_max;
 
@@ -46,8 +46,16 @@ struct Model
 	Vec3 min_position();
 	Vec3 max_position();
 	Vec3 box_dimensions();
-};
 
+protected:
+	std::vector<vec3_t> positions;
+	std::vector<vec3_t> tex_coords;
+	std::vector<vec3_t> normals;
+	std::vector<vec3_t> params;
+	std::vector<int> indices;
+	std::vector<Vertex> vertices;
+};
+//------------------------------------------------------------------------------
 struct STLModel : Model
 {
 	uint8_t header[STL_HEADER_SIZE];
@@ -90,22 +98,17 @@ struct OBJModel : Model
 	dGeomID create_collision_geo(dSpaceID ode_space);
 	unsigned int vert_count();
 	Vertex* verts();
-	
+
 	dTriMeshDataID ode_tri_mesh_dat;
-private:
-	std::vector<vec3_t> positions;
-	std::vector<vec3_t> tex_coords;
-	std::vector<vec3_t> normals;
-	std::vector<vec3_t> params;
-	std::vector<int> indices;
-	std::vector<Vertex> vertices;
 };
 
 //------------------------------------------------------------------------------
 struct Plane : Model
 {
-	Plane();
+	Plane(float size);
 	~Plane();
+
+	dGeomID create_collision_geo(dSpaceID ode_space);
 };
 
 }

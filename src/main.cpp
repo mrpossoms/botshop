@@ -4,6 +4,7 @@
 #include "body.hpp"
 #include "form.hpp"
 #include "camera.hpp"
+#include "world.hpp"
 #include "cli.h"
 #include "ctx.h"
 
@@ -33,6 +34,11 @@ GLFWwindow* init_glfw()
 	GLuint vao;
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
+
+	glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
+
+	glEnable(GL_DEPTH_TEST);
 
 	return win;
 }
@@ -135,28 +141,23 @@ int main(int argc, char* argv[])
 		attrs
 	);
 
-	glDisable(GL_CULL_FACE);
-
 	// int fd = open("./untitled.obj", O_RDONLY);
 	// printf("%d\n", errno);
 	// botshop::OBJModel mod(fd);
 
-	dInitODE2(0);
-	dWorldID world = dWorldCreate();
-	dSpaceID space = dHashSpaceCreate(0);
-
+	botshop::World world;
 
 	botshop::Model* car_model = botshop::ModelFactory::get_model("data/car_body.obj");
-	botshop::Form car_body(world, space, car_model);
-	botshop::Form box1(world, space, botshop::ModelFactory::get_model("data/untitled.obj"));
-	botshop::Form box2(world, space, botshop::ModelFactory::get_model("data/untitled.obj"));
+	botshop::Model* box_model = botshop::ModelFactory::get_model("data/untitled.obj");
+	botshop::Form car_body(world, car_model);
+	botshop::Form box1(world, box_model);
+	botshop::Form box2(world, box_model);
 
 
-	botshop::Camera cam(world, space, M_PI / 4, 160, 120);
+	botshop::Camera cam(world, M_PI / 4, 160, 120);
 
-	Vec3 car_dims = car_model->box_dimensions();
-
-	printf("%f %f %f\n", car_dims.x, car_dims.y, car_dims.z);
+	// Vec3 car_dims = car_model->box_dimensions();
+	// printf("%f %f %f\n", car_dims.x, car_dims.y, car_dims.z);
 
 	car_body.is_a_mesh(car_model)
 	 ->position(0, 0, -1)
@@ -173,8 +174,6 @@ int main(int argc, char* argv[])
 	cam.is_a_sphere(0.05)
 		->position(0, 0, 0)
 		->add_all();
-
-	dWorldSetGravity (world,0, 0, -9.8);
 
 	glUseProgram(prog);
 
@@ -201,16 +200,16 @@ int main(int argc, char* argv[])
 	// glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	// glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
- 	cam.torque(0, 2, 0);
+ // 	cam.torque(0, 2, 0);
 
- 	car_body.torque(1, 2, 3);
+ 	car_body.torque(5, 5, 0);
 	//cam.force(1, 0, 0);
 
 	while(!glfwWindowShouldClose(win))
 	{
-		dWorldStep(world, 0.05);
+		world.step(0.05);
 
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		cam.projection(proj)->view(view);
 		glUniformMatrix4fv(v_uniform, 1, GL_FALSE, (GLfloat*)view);

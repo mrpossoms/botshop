@@ -7,11 +7,13 @@ namespace botshop
 
 class Updateable
 {
+public:
 	virtual void step(float dt) = 0;
 };
 
 class Dynamic
 {
+public:
 	virtual Vec3 position() = 0;
 	virtual Quat orientation() = 0;
 	virtual Vec3 velocity() = 0;
@@ -23,6 +25,7 @@ class Dynamic
 
 class Drawable
 {
+public:
 	virtual void draw(GLint world_uniform, GLint norm_uniform) = 0;
 };
 

@@ -8,12 +8,12 @@ using namespace botshop;
 //   | |\/| / -_)  _| ' \/ _ \/ _` (_-<
 //   |_|  |_\___|\__|_||_\___/\__,_/__/
 //
-Body::Body(dWorldID world, dSpaceID space)
+Body::Body(World& world)
 {
-	this->world = world;
-	this->space = space;
+	this->world = world.ode_world;
+	this->space = world.ode_space;
 
-	this->ode_body = dBodyCreate(world);
+	this->ode_body = dBodyCreate(world.ode_world);
 }
 
 //------------------------------------------------------------------------------

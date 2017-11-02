@@ -1,9 +1,9 @@
 $(eval OS := $(shell uname))
 
 CXX=g++
-CFLAGS=--std=c++11 -g
+CFLAGS=--std=c++11 -g -O0
 INC=-I/usr/local/include
-SRCS=body.cpp geo.cpp form.cpp camera.cpp cli.cpp cli.cpp main.cpp
+SRCS=body.cpp geo.cpp form.cpp camera.cpp cli.cpp cli.cpp world.cpp main.cpp
 LINK=-lode
 
 ifeq ($(OS),Darwin)

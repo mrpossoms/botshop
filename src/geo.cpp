@@ -2,11 +2,33 @@
 
 using namespace botshop;
 
+//------------------------------------------------------------------------------
+unsigned int Model::vert_count()
+{
+	return vertices.size();
+}
+
+//------------------------------------------------------------------------------
+Vertex* Model::verts()
+{
+	return vertices.data();
+}
+
+//------------------------------------------------------------------------------
 void Model::compute_tangents()
 {
-	for(int i = vert_count(); i--;)
-	{
+	Vertex* v = verts();
 
+	for(int i = 0; i < vert_count(); i += 3)
+	{
+		vec3_sub(v[i + 0].tangent, v[i].position, v[i + 1].position);
+		vec3_sub(v[i + 1].tangent, v[i].position, v[i + 1].position);
+		vec3_sub(v[i + 2].tangent, v[i].position, v[i + 2].position);
+
+		for(int j = 3; j--;)
+		{
+			vec3_norm(v[i + j].tangent, v[i + j].tangent);
+		}
 	}
 }
 
@@ -120,6 +142,8 @@ STLModel::STLModel(int fd)
 		vec3_copy(all_verts[(i * 3) + 2].position , tri->verts[2].v);
 		vec3_copy(all_verts[(i * 3) + 2].normal   , tri->normal->v);
 	}
+
+	compute_tangents();
 }
 //------------------------------------------------------------------------------
 STLModel::~STLModel()
@@ -159,6 +183,38 @@ unsigned int STLModel::vert_count()
 Vertex* STLModel::verts()
 {
 	return NULL;
+}
+
+//------------------------------------------------------------------------------
+Plane::Plane(float size)
+{
+	Vertex verts[] = {
+		{ { -1 * size, 1 * size,  0 } },
+		{ {  1 * size, 1 * size,  0 } },
+		{ { -1 * size,-1 * size,  0 } },
+
+		{ { -1 * size,-1 * size,  0 } },
+		{ {  1 * size,-1 * size,  0 } },
+		{ {  1 * size, 1 * size,  0 } },
+	};
+
+	for(int i = 6; i--;)
+	{
+		verts[i].normal[2] = 1;
+		vertices.push_back(verts[i]);
+	}
+}
+
+//------------------------------------------------------------------------------
+Plane::~Plane()
+{
+
+}
+
+//------------------------------------------------------------------------------
+dGeomID Plane::create_collision_geo(dSpaceID ode_space)
+{
+	return dCreatePlane(ode_space, 0, 0, 1, 0);
 }
 
 //------------------------------------------------------------------------------
@@ -348,9 +404,9 @@ OBJModel::OBJModel(int fd)
 				for(int i = 0; i < 3; ++i)
 				{
 					Vertex v = {};
-					if(l.face.pos_idx[i]) vec3_copy(v.position, positions[l.face.pos_idx[i] - 1].v);
-					if(l.face.tex_idx[i]) vec3_copy(v.texture, tex_coords[l.face.tex_idx[i] - 1].v);
-					if(l.face.norm_idx[i]) vec3_copy(v.normal, normals[l.face.norm_idx[i] - 1].v);
+					if(l.face.pos_idx[i])  vec3_copy(v.position, positions[l.face.pos_idx[i] - 1].v);
+					if(l.face.tex_idx[i])  vec3_copy(v.texture,  tex_coords[l.face.tex_idx[i] - 1].v);
+					if(l.face.norm_idx[i]) vec3_copy(v.normal,   normals[l.face.norm_idx[i] - 1].v);
 
 					vertices.push_back(v);
 					indices.push_back(l.face.pos_idx[i]);
@@ -361,6 +417,8 @@ OBJModel::OBJModel(int fd)
 				break;
 		}
 	}
+
+	compute_tangents();
 }
 
 //------------------------------------------------------------------------------
@@ -383,18 +441,6 @@ dGeomID OBJModel::create_collision_geo(dSpaceID ode_space)
 	);
 
 	return dCreateTriMesh(ode_space, ode_tri_mesh_dat, 0, 0, 0);
-}
-
-//------------------------------------------------------------------------------
-unsigned int OBJModel::vert_count()
-{
-	return vertices.size();
-}
-
-//------------------------------------------------------------------------------
-Vertex* OBJModel::verts()
-{
-	return vertices.data();
 }
 
 //------------------------------------------------------------------------------

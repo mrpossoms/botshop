@@ -1,6 +1,7 @@
 #pragma once
 #include "core.h"
 #include "geo.hpp"
+#include "world.hpp"
 
 extern dWorldID ODE_CURRENT_WORLD;
 
@@ -18,7 +19,7 @@ class Body : Dynamic
 		dSpaceID ode_body_space;
 
 	public:
-		Body(dWorldID world, dSpaceID space);
+		Body(World& world);
 		~Body();
 
 		dWorldID world;

@@ -3,7 +3,7 @@
 
 using namespace botshop;
 
-Form::Form(dWorldID world, dSpaceID space, Model* mesh) : Body(world, space)
+Form::Form(World& world, Model* mesh) : Body(world)
 {
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -14,6 +14,10 @@ Form::Form(dWorldID world, dSpaceID space, Model* mesh) : Body(world, space)
 		mesh->verts(),
 		GL_STATIC_DRAW
 	);
+
+	Vertex v = mesh->verts()[0];
+	printf("p %f %f %f \n", v.position[0], v.position[1], v.position[2]);
+	printf("n %f %f %f \n", v.normal[0], v.normal[1], v.normal[2]);
 
 	this->mesh = mesh;
 }
@@ -33,7 +37,7 @@ void Form::draw(GLint world_uniform, GLint norm_uniform)
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)sizeof(Vec3));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)sizeof(vec3));
 
 	mat4x4 world;
 	mat3x3 rot;

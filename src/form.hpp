@@ -3,17 +3,17 @@
 #include "core.h"
 #include "body.hpp"
 #include "geo.hpp"
+#include "world.hpp"
 
 namespace botshop {
 
 class Form : public Body
 {
 public:
-	Form(dWorldID world, dSpaceID space, Model* mesh);
+	Form(World& world, Model* mesh);
 	~Form();
 
 	void draw(GLint world_uniform, GLint norm_uniform);
-	// void draw_test(GLint world_uniform);
 
 private:
 	GLuint vbo;
