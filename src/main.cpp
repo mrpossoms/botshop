@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <getopt.h>
+#include <png.h>
 #include "core.h"
 #include "body.hpp"
 #include "form.hpp"
@@ -9,6 +10,12 @@
 #include "ctx.h"
 
 botshop::Context CTX;
+
+void abort(std::string message)
+{
+	std::cerr << message << std::endl;
+	exit(-1);
+}
 
 GLFWwindow* init_glfw()
 {
@@ -46,6 +53,74 @@ GLFWwindow* init_glfw()
 }
 
 
+GLint load_texture(const char* path)
+{
+	char header[8];    // 8 is the maximum size that can be checked
+	png_structp png_ptr = {};
+	png_infop info_ptr;
+	png_bytep * row_pointers;
+	png_byte color_type;
+	png_byte bit_depth;
+	int width, height;
+	int number_of_passes;
+
+	/* open file and test for it being a png */
+	FILE *fp = fopen(path, "rb");
+	if (!fp)
+		fprintf(stderr, "[read_png_file] File %s could not be opened for reading", path);
+	fread(header, 1, 8, fp);
+	if (png_sig_cmp((png_const_bytep)header, 0, 8))
+	{
+		fprintf(stderr, "[read_png_file] File %s is not recognized as a PNG file", path);
+	}
+
+
+	/* initialize stuff */
+	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+
+	if (!png_ptr)
+		abort("[read_png_file] png_create_read_struct failed");
+
+	info_ptr = png_create_info_struct(png_ptr);
+	if (!info_ptr)
+		abort("[read_png_file] png_create_info_struct failed");
+
+	if (setjmp(png_jmpbuf(png_ptr)))
+		abort("[read_png_file] Error during init_io");
+
+	png_init_io(png_ptr, fp);
+	png_set_sig_bytes(png_ptr, 8);
+
+	png_read_info(png_ptr, info_ptr);
+
+	width = png_get_image_width(png_ptr, info_ptr);
+	height = png_get_image_height(png_ptr, info_ptr);
+	color_type = png_get_color_type(png_ptr, info_ptr);
+	bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+
+	number_of_passes = png_set_interlace_handling(png_ptr);
+	png_read_update_info(png_ptr, info_ptr);
+
+
+	/* read file */
+	if (setjmp(png_jmpbuf(png_ptr)))
+			abort("[read_png_file] Error during read_image");
+
+	row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * height);
+	char* pixel_buf = (char*)malloc(sizeof(char) * height * width);
+
+	for (int y = 0; y < height; y++)
+			row_pointers[y] = (png_byte*) malloc(png_get_rowbytes(png_ptr,info_ptr));
+
+	png_read_image(png_ptr, row_pointers);
+
+	fclose(fp);
+
+
+	return 0;
+}
+
+
 GLint load_shader(const char* path, GLenum type)
 {
 	GLuint shader;
@@ -56,8 +131,7 @@ GLint load_shader(const char* path, GLenum type)
 
 	if (fd < 0)
 	{
-		std::cerr << "Failed to load vertex shader '" << path << "' " << errno << std::endl;
-		exit(-1);
+		fprintf(stderr, "Failed to load vertex shader '%s' %d\n", path, errno);
 	}
 
 	// Load the shader source code
@@ -145,11 +219,12 @@ int main(int argc, char* argv[])
 	GLFWwindow* win = init_glfw();
 
 	const char* attrs[] = {
-		"position", "normal", NULL
+		"position", "normal", "tangent", "texture", NULL
 	};
 	GLint prog = program(
 		load_shader("data/basic.vsh", GL_VERTEX_SHADER),
 		load_shader("data/pbr.fsh", GL_FRAGMENT_SHADER),
+		// load_shader("data/basic.fsh", GL_FRAGMENT_SHADER),
 		attrs
 	);
 
@@ -204,7 +279,7 @@ int main(int argc, char* argv[])
  // 	car_body.torque(5, 5, 0);
 	//cam.force(1, 0, 0);
 
-	box0.torque(0.1, 1, 0);
+	box0.torque(10, 1, 0);
 	box1.torque(0.1, 0, 0);
 	box2.torque(0, 0.1, 0);
 

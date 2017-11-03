@@ -51,6 +51,7 @@ protected:
 	std::vector<vec3_t> positions;
 	std::vector<vec3_t> tex_coords;
 	std::vector<vec3_t> normals;
+	
 	std::vector<vec3_t> params;
 	std::vector<int> indices;
 	std::vector<Vertex> vertices;

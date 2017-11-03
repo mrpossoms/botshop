@@ -19,6 +19,8 @@ void main()
 {
 	v_texcoord = texcoord.xy;
 	v_normal   = normal_matrix * normal;
+	vec3 tangent = normal_matrix * tangent;
+	v_binormal = cross(v_normal, tangent);
 
 	vec4 view_space = view_matrix * world_matrix * vec4(position, 1.0);
 	gl_Position = proj_matrix * view_space;

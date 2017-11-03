@@ -4,7 +4,7 @@ CXX=g++
 CFLAGS=--std=c++11 -g -O0
 INC=-I/usr/local/include
 SRCS=body.cpp geo.cpp form.cpp camera.cpp cli.cpp cli.cpp world.cpp main.cpp
-LINK=-lode
+LINK=-lode -lpng
 
 ifeq ($(OS),Darwin)
 	LINK +=-lpthread -lm -lglfw3 -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo

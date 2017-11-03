@@ -244,7 +244,7 @@ void main() {
     diffuse_light += diffref * light_color;
 
     // IBL lighting
-    vec2 brdf = texture2D(iblbrdf, vec2(roughness, 1.0 - NdV)).xy;
+    vec2 brdf = texture(iblbrdf, vec2(roughness, 1.0 - NdV)).xy;
     vec3 iblspec = min(vec3(0.99), fresnel_factor(specular, NdV) * brdf.x + brdf.y);
     reflected_light += iblspec * envspec;
     diffuse_light += envdiff * (1.0 / PI);
