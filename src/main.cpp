@@ -13,6 +13,7 @@ botshop::Context CTX;
 GLFWwindow* init_glfw()
 {
 	if (!glfwInit()){
+		fprintf(stderr, "glfwInit() failed\n");
 		exit(-1);
 	}
 
@@ -26,6 +27,7 @@ GLFWwindow* init_glfw()
 
 	if (!win){
 		glfwTerminate();
+		fprintf(stderr, "glfwCreateWindow() failed\n");
 		exit(-2);
 	}
 
@@ -116,6 +118,16 @@ GLint program(GLint vertex, GLint frag, const char** attributes)
 	glGetProgramiv(prog, GL_LINK_STATUS, &status);
 	if (status == 0)
 	{
+		GLint log_length;
+		glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &log_length);
+		if (log_length > 0)
+		{
+			GLchar *log_str = (GLchar *)malloc(log_length);
+			glGetProgramInfoLog(prog, log_length, &log_length, log_str);
+			std::cerr << "Shader link log: " << log_length << std::endl << log_str << std::endl;
+			write(1, log_str, log_length);
+			free(log_str);
+		}
 		exit(-1);
 	}
 
@@ -137,7 +149,7 @@ int main(int argc, char* argv[])
 	};
 	GLint prog = program(
 		load_shader("data/basic.vsh", GL_VERTEX_SHADER),
-		load_shader("data/basic.fsh", GL_FRAGMENT_SHADER),
+		load_shader("data/pbr.fsh", GL_FRAGMENT_SHADER),
 		attrs
 	);
 
@@ -172,11 +184,14 @@ int main(int argc, char* argv[])
 
 
 	mat4x4 proj, view;
-	GLint world_uniform = glGetUniformLocation(prog, "world");
+	GLint world_uniform = glGetUniformLocation(prog, "world_matrix");
 	GLint norm_uniform  = glGetUniformLocation(prog, "normal_matrix");
 
-	GLint v_uniform     = glGetUniformLocation(prog, "view");
-	GLint p_uniform     = glGetUniformLocation(prog, "projection");
+	GLint v_uniform     = glGetUniformLocation(prog, "view_matrix");
+	GLint p_uniform     = glGetUniformLocation(prog, "proj_matrix");
+
+	GLint material_uniform = glGetUniformLocation(prog, "material");
+	GLint albedo_uniform = glGetUniformLocation(prog, "albedo");
 
 	world += car_body;
 	world += box0;
@@ -197,6 +212,12 @@ int main(int argc, char* argv[])
 		.world_uniform = world_uniform,
 		.norm_uniform  = norm_uniform,
 	};
+
+	vec4 material = { 1, 0.25, 0, 1 };
+	vec4 albedo = { 1, 0.25, 1, 1 };
+
+	glUniform4fv(material_uniform, 1, (GLfloat*)material);
+	glUniform4fv(albedo_uniform, 1, (GLfloat*)albedo);
 
 	while(!glfwWindowShouldClose(win))
 	{

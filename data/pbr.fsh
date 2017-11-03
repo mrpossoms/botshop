@@ -1,3 +1,8 @@
+#version 400 core
+#define COOK_BLINN
+#define COOK
+// #define USE_NORMAL_MAP
+
 in vec2 v_texcoord; // texture coords
 in vec3 v_normal;   // normal
 in vec3 v_binormal; // binormal (for TBN basis calc)
@@ -5,19 +10,16 @@ in vec3 v_pos;      // pixel view space position
 
 out vec4 color;
 
-layout(std140) uniform Transforms
-{
-    mat4x4 world_matrix;  // object's world position
-    mat4x4 view_matrix;   // view (camera) transform
-    mat4x4 proj_matrix;   // projection matrix
-    mat3x3 normal_matrix; // normal transformation matrix ( transpose(inverse(W * V)) )
-};
 
-layout(std140) uniform Material
-{
-    vec4 material; // x - metallic, y - roughness, w - "rim" lighting
-    vec4 albedo;   // constant albedo color, used when textures are off
-};
+uniform mat4x4 world_matrix;  // object's world position
+uniform mat4x4 view_matrix;   // view (camera) transform
+uniform mat4x4 proj_matrix;   // projection matrix
+uniform mat3x3 normal_matrix; // normal transformation matrix ( transpose(inverse(W * V)) )
+
+
+uniform vec4 material; // x - metallic, y - roughness, w - "rim" lighting
+uniform vec4 albedo;   // constant albedo color, used when textures are off
+
 
 uniform samplerCube envd;  // prefiltered env cubemap
 uniform sampler2D tex;     // base texture (albedo)
@@ -30,7 +32,7 @@ uniform sampler2D iblbrdf; // IBL BRDF normalization precalculated tex
 
 
 // constant light position, only one light source for testing (treated as point light)
-const vec4 light_pos = vec4(-2, 3, -2, 1);
+const vec4 light_pos = vec4(0, 5, 20, 1);
 
 
 // handy value clamping to 0 - 1 range
@@ -154,7 +156,7 @@ void main() {
 
 
     // normal map
-#if USE_NORMAL_MAP
+#ifdef USE_NORMAL_MAP
     // tbn basis
     vec3 N = tbn * (texture2D(norm, texcoord).xyz * 2.0 - 1.0);
 #else
@@ -162,14 +164,14 @@ void main() {
 #endif
 
     // albedo/specular base
-#if USE_ALBEDO_MAP
+#ifdef USE_ALBEDO_MAP
     vec3 base = texture2D(tex, texcoord).xyz;
 #else
     vec3 base = albedo.xyz;
 #endif
 
     // roughness
-#if USE_ROUGHNESS_MAP
+#ifdef USE_ROUGHNESS_MAP
     float roughness = texture2D(spec, texcoord).y * material.y;
 #else
     float roughness = material.y;
@@ -186,13 +188,13 @@ void main() {
     //    I know that my IBL cubemap has diffuse pre-integrated value in 10th MIP level
     //    actually level selection should be tweakable or from separate diffuse cubemap
     mat3x3 tnrm = transpose(normal_matrix);
-    vec3 envdiff = textureCubeLod(envd, tnrm * N, 10).xyz;
+    vec3 envdiff = textureLod(envd, tnrm * N, 10).xyz;
 
     // specular IBL term
     //    11 magic number is total MIP levels in cubemap, this is simplest way for picking
     //    MIP level from roughness value (but it's not correct, however it looks fine)
     vec3 refl = tnrm * reflect(-V, N);
-    vec3 envspec = textureCubeLod(
+    vec3 envspec = textureLod(
         envd, refl, max(roughness * 11.0, textureQueryLod(envd, refl).y)
     ).xyz;
 

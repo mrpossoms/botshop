@@ -10,18 +10,18 @@ out vec3 v_normal;   // normal
 out vec3 v_binormal; // binormal (for TBN basis calc)
 out vec3 v_pos;      // pixel view space position
 
-uniform mat4 view;
-uniform mat4 projection;
+uniform mat4 view_matrix;
+uniform mat4 proj_matrix;
 uniform mat3 normal_matrix;
-uniform mat4 world;
+uniform mat4 world_matrix;
 
 void main()
 {
 	v_texcoord = texcoord.xy;
 	v_normal   = normal_matrix * normal;
 
-	vec4 view_space = view * world * vec4(position, 1.0);
-	gl_Position = projection * view_space;
+	vec4 view_space = view_matrix * world_matrix * vec4(position, 1.0);
+	gl_Position = proj_matrix * view_space;
 
 	v_pos = view_space.xyz;
 }
