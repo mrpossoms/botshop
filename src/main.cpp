@@ -150,30 +150,23 @@ int main(int argc, char* argv[])
 	botshop::Model* car_model = botshop::ModelFactory::get_model("data/car_body.obj");
 	botshop::Model* box_model = botshop::ModelFactory::get_model("data/untitled.obj");
 	botshop::Form car_body(world, car_model);
+	botshop::Form box0(world, box_model);
 	botshop::Form box1(world, box_model);
 	botshop::Form box2(world, box_model);
 
 
 	botshop::Camera cam(world, M_PI / 4, 160, 120);
 
-	// Vec3 car_dims = car_model->box_dimensions();
+	Vec3 cd = car_model->box_dimensions();
 	// printf("%f %f %f\n", car_dims.x, car_dims.y, car_dims.z);
 
-	// car_body.is_a_mesh(car_model)
-	//  ->position(0, 0, 9)
-	//  ->add_all();
+	car_body.is_a_box(cd.x, cd.y, cd.z)->position(0, 0, 9);
 
-	 box1.is_a_box(1, 1, 1)
- 	 ->position(-3, 0, 10)
- 	 ->add_all();
+	box0.is_a_box(2, 2, 2)->position(0, 0, 5);
+	box1.is_a_box(2, 2, 2)->position(-3, 0, 10);
+	box2.is_a_box(2, 2, 2)->position(3, 0, 10);
 
-	 box2.is_a_box(1, 1, 1)
- 	 ->position(3, 0, 10)
- 	 ->add_all();
-
-	cam.is_a_sphere(0.05)
-		->position(0, 0, 10)
-		->add_all();
+	cam.is_a_sphere(0.05)->position(0, 0, 10);
 
 	glUseProgram(prog);
 
@@ -185,18 +178,20 @@ int main(int argc, char* argv[])
 	GLint v_uniform     = glGetUniformLocation(prog, "view");
 	GLint p_uniform     = glGetUniformLocation(prog, "projection");
 
-	// world += car_body;
+	world += car_body;
+	world += box0;
 	world += box1;
 	world += box2;
 	world += cam;
 
- // 	cam.torque(0, 5, 0);
+ // 	cam.torque(1, 0, 1);
 
  // 	car_body.torque(5, 5, 0);
 	//cam.force(1, 0, 0);
 
-	box1.torque(1, 0, 0);
-	box2.torque(0, 1, 0);
+	box0.torque(0.1, 1, 0);
+	box1.torque(0.1, 0, 0);
+	box2.torque(0, 0.1, 0);
 
 	botshop::DrawParams draw_params = {
 		.world_uniform = world_uniform,

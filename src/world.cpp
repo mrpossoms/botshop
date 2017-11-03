@@ -7,29 +7,22 @@ static void near_callback (void *data, dGeomID o1, dGeomID o2)
 	World* world = (World*)data;
 	if(o1 == world->ground ^ o1 == world->ground) return;
 
-	const int N = 10;
-	const int mode_flags = dContactSlip1 | dContactSlip2 |
-	                       dContactSoftERP | dContactSoftCFM | dContactApprox1;
+	dBodyID b1 = dGeomGetBody(o1);
+    dBodyID b2 = dGeomGetBody(o2);
 
-	dContact contact[N];
-	int n = dCollide (o1,o2,N,&contact[0].geom,sizeof(dContact));
+    const int MAX_CONTACTS = 8;
+    dContact contact[MAX_CONTACTS];
 
-	assert(n < N);
+    int numc = dCollide (o1, o2, MAX_CONTACTS,
+                        &contact[0].geom,
+                        sizeof(dContact));
 
-	if (n > 0)
-	{
-    for (int i = 0; i < n; i++)
-		{
-      contact[i].surface.mode =
-      contact[i].surface.mu = dInfinity;
-      contact[i].surface.slip1 = 0.1;
-      contact[i].surface.slip2 = 0.1;
-      contact[i].surface.soft_erp = 0.5;
-      contact[i].surface.soft_cfm = 0.3;
-      dJointID c = dJointCreateContact(world->ode_world, world->ode_contact_group, &contact[i]);
-      dJointAttach(c, dGeomGetBody(contact[i].geom.g1), dGeomGetBody(contact[i].geom.g2));
-    }
-  }
+    for (int i=0; i<numc; i++) {
+        contact[i].surface.mode = dContactApprox1;
+        contact[i].surface.mu = 5;
+        dJointID c = dJointCreateContact (world->ode_world, world->ode_contact_group, contact+i);
+        dJointAttach (c, b1, b2);
+	}
 }
 
 
@@ -38,9 +31,18 @@ World::World()
 	dInitODE2(0);
 	ode_world = dWorldCreate();
 	ode_space = dHashSpaceCreate(0);
-  ode_contact_group = dJointGroupCreate (0);
+	ode_contact_group = dJointGroupCreate (0);
 
+	dWorldSetCFM (ode_world, 1e-5);
+	dWorldSetAutoDisableFlag (ode_world, 1);
 	dWorldSetGravity (ode_world, 0, 0, -.98);
+
+	dWorldSetLinearDamping(ode_world, 0.00001);
+	dWorldSetAngularDamping(ode_world, 0.005);
+	dWorldSetMaxAngularSpeed(ode_world, 200);
+
+	dWorldSetContactMaxCorrectingVel (ode_world, 0.1);
+	dWorldSetContactSurfaceLayer (ode_world, 0.001);
 
 	ground = dCreatePlane(ode_space, 0, 0, 1, 0);
 	ground_mesh = new botshop::Plane(10);
@@ -66,6 +68,7 @@ World::~World()
 
 World* World::operator+=(Dynamic& dynamic)
 {
+	dynamic.add_all();
 	bodies.push_back(&dynamic);
 
 	return this;
@@ -75,7 +78,7 @@ World* World::operator+=(Dynamic& dynamic)
 void World::step(float dt)
 {
 	dSpaceCollide (ode_space, this, &near_callback);
-	dWorldStep(ode_world, dt);
+	dWorldQuickStep(ode_world, dt);
 	dJointGroupEmpty(ode_contact_group);
 }
 
@@ -98,7 +101,7 @@ void World::draw(DrawParams* params)
 	glUniformMatrix4fv(params->world_uniform, 1, GL_FALSE, (GLfloat*)world);
 	glUniformMatrix3fv(params->norm_uniform, 1, GL_FALSE, (GLfloat*)rot);
 
-	// glDrawArrays(GL_TRIANGLES, 0, ground_mesh->vert_count());
+	glDrawArrays(GL_TRIANGLES, 0, ground_mesh->vert_count());
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);

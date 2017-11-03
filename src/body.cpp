@@ -25,7 +25,7 @@ Body::~Body()
 }
 //------------------------------------------------------------------------------
 
-Body* Body::add_all()
+void Body::add_all()
 {
 	for(Body* body : welded_children)
 	{
@@ -36,14 +36,12 @@ Body* Body::add_all()
 	{
 		joint->body->add_all();
 	}
-
-	return this;
 }
 //------------------------------------------------------------------------------
 
-Body* Body::remove_all()
+void Body::remove_all()
 {
-	return this;
+
 }
 //------------------------------------------------------------------------------
 

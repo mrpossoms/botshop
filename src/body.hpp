@@ -36,8 +36,8 @@ class Body : public Dynamic
 		std::vector<Joint*> jointed_children;
 		std::vector<dJointID> joints;
 
-		Body* add_all();
-		Body* remove_all();
+		void add_all();
+		void remove_all();
 
 		Body* attach(const Joint* joint);
 		Body* attach(Body* body);

@@ -14,6 +14,8 @@ public:
 class Dynamic
 {
 public:
+	virtual void add_all() = 0;
+	virtual void remove_all() = 0;
 	virtual Vec3 position() = 0;
 	virtual Quat orientation() = 0;
 	virtual Vec3 velocity() = 0;
