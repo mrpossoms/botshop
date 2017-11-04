@@ -2,7 +2,8 @@
 #define COOK_BLINN
 #define COOK
 #define USE_ALBEDO_MAP
-// #define USE_NORMAL_MAP
+#define USE_NORMAL_MAP
+#define USE_ROUGHNESS_MAP
 
 in vec2 v_texcoord; // texture coords
 in vec3 v_normal;   // normal

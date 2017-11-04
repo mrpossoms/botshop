@@ -344,7 +344,9 @@ int main(int argc, char* argv[])
 	botshop::Form box1(world, box_model);
 	botshop::Form box2(world, box_model);
 
-	GLuint test_tex = load_texture("data/512X512.png");
+	GLuint test_tex = load_texture("data/color.png");
+	GLuint test_norm = load_texture("data/normal.png");
+	GLuint test_spec = load_texture("data/specular.png");
 
 	printf("test_tex %d\n", test_tex);
 
@@ -375,6 +377,8 @@ int main(int argc, char* argv[])
 	GLint albedo_uniform = glGetUniformLocation(prog, "albedo");
 
 	GLint texture_uniform = glGetUniformLocation(prog, "tex");
+	GLint normal_uniform = glGetUniformLocation(prog, "norm");
+	GLint specular_uniform = glGetUniformLocation(prog, "spec");
 
 	assert(gl_get_error());
 
@@ -398,15 +402,23 @@ int main(int argc, char* argv[])
 		.norm_uniform  = norm_uniform,
 	};
 
-	vec4 material = { 0.01, 0.5, 1, 1 };
+	vec4 material = { 0.1, 0.1, 1, 0.01 };
 	vec4 albedo = { 1, 1, 1, 1 };
 
 	glUniform4fv(material_uniform, 1, (GLfloat*)material);
 	glUniform4fv(albedo_uniform, 1, (GLfloat*)albedo);
 
-	glActiveTexture(GL_TEXTURE1);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, test_tex);
-	glUniform1i(texture_uniform, 1);
+	glUniform1i(texture_uniform, 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, test_spec);
+	glUniform1i(specular_uniform, 1);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, test_norm);
+	glUniform1i(normal_uniform, 2);
 
 	assert(gl_get_error());
 
