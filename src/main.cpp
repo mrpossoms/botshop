@@ -159,15 +159,17 @@ GLuint load_texture(const char* path)
 			break;
 	}
 
+	int fd = open("/dev/random", O_RDONLY);
+	read(fd, pixel_buf, 3 * width * height);
+	close(fd);
+
 	assert(gl_get_error());
 	glGenTextures(1, &tex);
 	assert(gl_get_error());
 
+	// memset(pixel_buf, 64, sizeof(pixel_buf));
+
 	glBindTexture(GL_TEXTURE_2D, tex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexImage2D(
 		GL_TEXTURE_2D,
 		0,
@@ -178,6 +180,11 @@ GLuint load_texture(const char* path)
 		GL_UNSIGNED_BYTE,
 		pixel_buf
 	);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glGenerateMipmap(GL_TEXTURE_2D);
 
 	assert(gl_get_error());
 
@@ -305,7 +312,7 @@ int main(int argc, char* argv[])
 	assert(gl_get_error());
 
 	const char* attrs[] = {
-		"position", "normal", "tangent", "texture", NULL
+		"position", "normal", "tangent", "texcoord", NULL
 	};
 	GLint prog = program(
 		load_shader("data/basic.vsh", GL_VERTEX_SHADER),
@@ -348,7 +355,6 @@ int main(int argc, char* argv[])
 
 	glUseProgram(prog);
 
-
 	mat4x4 proj, view;
 	GLint world_uniform = glGetUniformLocation(prog, "world_matrix");
 	GLint norm_uniform  = glGetUniformLocation(prog, "normal_matrix");
@@ -390,7 +396,6 @@ int main(int argc, char* argv[])
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, test_tex);
 	glUniform1i(texture_uniform, 0);
-
 
 	while(!glfwWindowShouldClose(win))
 	{

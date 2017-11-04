@@ -23,10 +23,11 @@ void Model::compute_tangents()
 	{
 		vec3_sub(v[i + 0].tangent, v[i].position, v[i + 1].position);
 		vec3_sub(v[i + 1].tangent, v[i].position, v[i + 1].position);
-		vec3_sub(v[i + 2].tangent, v[i].position, v[i + 2].position);
+		vec3_sub(v[i + 2].tangent, v[i].position, v[i + 1].position);
 
 		for(int j = 3; j--;)
 		{
+			vec3_mul_cross(v[i + j].tangent, v[i + j].tangent, v[i + j].normal);
 			vec3_norm(v[i + j].tangent, v[i + j].tangent);
 		}
 	}
@@ -201,8 +202,12 @@ Plane::Plane(float size)
 	for(int i = 6; i--;)
 	{
 		verts[i].normal[2] = 1;
+		verts[i].texture[0] = ((verts[i].position[0] / size) + 1) / 2;
+		verts[i].texture[1] = ((verts[i].position[1] / size) + 1) / 2;
 		vertices.push_back(verts[i]);
 	}
+
+	// compute_tangents();
 }
 
 //------------------------------------------------------------------------------

@@ -8,7 +8,7 @@ static void near_callback (void *data, dGeomID o1, dGeomID o2)
 	if(o1 == world->ground ^ o1 == world->ground) return;
 
 	dBodyID b1 = dGeomGetBody(o1);
-    dBodyID b2 = dGeomGetBody(o2);
+  dBodyID b2 = dGeomGetBody(o2);
 
     const int MAX_CONTACTS = 8;
     dContact contact[MAX_CONTACTS];
@@ -46,6 +46,8 @@ World::World()
 
 	ground = dCreatePlane(ode_space, 0, 0, 1, 0);
 	ground_mesh = new botshop::Plane(10);
+
+	ground_mesh->compute_tangents();
 
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -85,13 +87,13 @@ void World::step(float dt)
 
 void World::draw(DrawParams* params)
 {
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)sizeof(vec3));
+	for(int i = 4; i--;)
+	{
+		glEnableVertexAttribArray(i);
+		glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(vec3) * i));
+	}
 
 	mat4x4 world;
 	mat3x3 rot;
@@ -103,8 +105,10 @@ void World::draw(DrawParams* params)
 
 	glDrawArrays(GL_TRIANGLES, 0, ground_mesh->vert_count());
 
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(1);
+	for(int i = 4; i--;)
+	{
+		glDisableVertexAttribArray(i);
+	}
 
 	for(Dynamic* body : bodies)
 	{
