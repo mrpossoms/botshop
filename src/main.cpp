@@ -17,6 +17,11 @@ void abort(std::string message)
 	exit(-1);
 }
 
+float randf(float f)
+{
+	return f * (random() % 2048) / 2048.f;
+}
+
 bool gl_get_error()
 {
 	GLenum err = GL_NO_ERROR;
@@ -61,6 +66,7 @@ GLFWwindow* init_glfw()
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
+	// glEnable(GL_TEXTURE_2D);
 
 	assert(gl_get_error());
 
@@ -139,7 +145,7 @@ GLuint load_texture(const char* path)
 	int bytes_per_row = png_get_rowbytes(png_ptr,info_ptr);
 	for (int y = 0; y < height; y++)
 	{
-		// memcpy(pixel_buf + (y * bytes_per_row), row_pointers[y], bytes_per_row);
+		memcpy(pixel_buf + (y * bytes_per_row), row_pointers[y], bytes_per_row);
 		free(row_pointers[y]);
 	}
 	free(row_pointers);
@@ -159,9 +165,9 @@ GLuint load_texture(const char* path)
 			break;
 	}
 
-	int fd = open("/dev/random", O_RDONLY);
-	read(fd, pixel_buf, 3 * width * height);
-	close(fd);
+	// int fd = open("/dev/random", O_RDONLY);
+	// read(fd, pixel_buf, 3 * width * height);
+	// close(fd);
 
 	assert(gl_get_error());
 	glGenTextures(1, &tex);
@@ -178,7 +184,7 @@ GLuint load_texture(const char* path)
 		0,
 		gl_color_type,
 		GL_UNSIGNED_BYTE,
-		pixel_buf
+		(void*)pixel_buf
 	);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -188,7 +194,7 @@ GLuint load_texture(const char* path)
 
 	assert(gl_get_error());
 
-	return 0;
+	return tex;
 }
 
 
@@ -316,10 +322,12 @@ int main(int argc, char* argv[])
 	};
 	GLint prog = program(
 		load_shader("data/basic.vsh", GL_VERTEX_SHADER),
-		// load_shader("data/pbr.fsh", GL_FRAGMENT_SHADER),
-		load_shader("data/basic.fsh", GL_FRAGMENT_SHADER),
+		load_shader("data/pbr.fsh", GL_FRAGMENT_SHADER),
+		// load_shader("data/basic.fsh", GL_FRAGMENT_SHADER),
 		attrs
 	);
+
+	srand(time(NULL));
 
 	assert(gl_get_error());
 
@@ -345,6 +353,7 @@ int main(int argc, char* argv[])
 	Vec3 cd = car_model->box_dimensions();
 	// printf("%f %f %f\n", car_dims.x, car_dims.y, car_dims.z);
 
+	// car_body.is_a_mesh(car_model)->position(0, 0, 9);
 	car_body.is_a_box(cd.x, cd.y, cd.z)->position(0, 0, 9);
 
 	box0.is_a_box(2, 2, 2)->position(0, 0, 5);
@@ -367,6 +376,8 @@ int main(int argc, char* argv[])
 
 	GLint texture_uniform = glGetUniformLocation(prog, "tex");
 
+	assert(gl_get_error());
+
 	world += car_body;
 	world += box0;
 	world += box1;
@@ -375,27 +386,29 @@ int main(int argc, char* argv[])
 
  // 	cam.torque(1, 0, 1);
 
- // 	car_body.torque(5, 5, 0);
+ 	car_body.torque(randf(20) - 10, randf(20) - 10, randf(20) - 10);
 	//cam.force(1, 0, 0);
 
-	box0.torque(10, 1, 0);
-	box1.torque(0.1, 0, 0);
-	box2.torque(0, 0.1, 0);
+	box0.torque(randf(20) - 10, randf(20) - 10, randf(20) - 10);
+	box1.torque(randf(20) - 10, randf(20) - 10, randf(20) - 10);
+	box2.torque(randf(20) - 10, randf(20) - 10, randf(20) - 10);
 
 	botshop::DrawParams draw_params = {
 		.world_uniform = world_uniform,
 		.norm_uniform  = norm_uniform,
 	};
 
-	vec4 material = { 1, 0.25, 0, 1 };
-	vec4 albedo = { 1, 0.25, 1, 1 };
+	vec4 material = { 0.01, 0.5, 1, 1 };
+	vec4 albedo = { 1, 1, 1, 1 };
 
 	glUniform4fv(material_uniform, 1, (GLfloat*)material);
 	glUniform4fv(albedo_uniform, 1, (GLfloat*)albedo);
 
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, test_tex);
-	glUniform1i(texture_uniform, 0);
+	glUniform1i(texture_uniform, 1);
+
+	assert(gl_get_error());
 
 	while(!glfwWindowShouldClose(win))
 	{

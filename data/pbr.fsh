@@ -1,7 +1,7 @@
 #version 400 core
 #define COOK_BLINN
 #define COOK
-// #define USE_ALBEDO_MAP
+#define USE_ALBEDO_MAP
 // #define USE_NORMAL_MAP
 
 in vec2 v_texcoord; // texture coords
@@ -141,7 +141,7 @@ void main() {
     vec3 local_light_pos = (view_matrix * (/*world_matrix */ light_pos)).xyz;
 
     // light attenuation
-    float A = 20.0 / dot(local_light_pos - v_pos, local_light_pos - v_pos);
+    float A = 1000.0 / dot(local_light_pos - v_pos, local_light_pos - v_pos);
 
     // L, V, H vectors
     vec3 L = normalize(local_light_pos - v_pos);
@@ -255,6 +255,6 @@ void main() {
         diffuse_light * mix(base, vec3(0.0), metallic) +
         reflected_light;
 
-    color = texture(tex, v_texcoord) + vec4(result, 1.0);
+    color = vec4(result, 1.0);
     //vec4(texture, 1);
 }
