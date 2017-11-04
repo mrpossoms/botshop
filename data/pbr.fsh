@@ -1,6 +1,7 @@
 #version 400 core
 #define COOK_BLINN
 #define COOK
+// #define USE_ALBEDO_MAP
 // #define USE_NORMAL_MAP
 
 in vec2 v_texcoord; // texture coords
@@ -158,21 +159,21 @@ void main() {
     // normal map
 #ifdef USE_NORMAL_MAP
     // tbn basis
-    vec3 N = tbn * (texture2D(norm, texcoord).xyz * 2.0 - 1.0);
+    vec3 N = tbn * (texture(norm, texcoord).xyz * 2.0 - 1.0);
 #else
     vec3 N = nn;
 #endif
 
     // albedo/specular base
 #ifdef USE_ALBEDO_MAP
-    vec3 base = texture2D(tex, texcoord).xyz;
+    vec3 base = texture(tex, texcoord).xyz;
 #else
     vec3 base = albedo.xyz;
 #endif
 
     // roughness
 #ifdef USE_ROUGHNESS_MAP
-    float roughness = texture2D(spec, texcoord).y * material.y;
+    float roughness = texture(spec, texcoord).y * material.y;
 #else
     float roughness = material.y;
 #endif
@@ -244,7 +245,7 @@ void main() {
     diffuse_light += diffref * light_color;
 
     // IBL lighting
-    vec2 brdf = texture(iblbrdf, vec2(roughness, 1.0 - NdV)).xy;
+    vec2 brdf = vec2(1, 0);// texture(iblbrdf, vec2(roughness, 1.0 - NdV)).xy;
     vec3 iblspec = min(vec3(0.99), fresnel_factor(specular, NdV) * brdf.x + brdf.y);
     reflected_light += iblspec * envspec;
     diffuse_light += envdiff * (1.0 / PI);
@@ -254,5 +255,6 @@ void main() {
         diffuse_light * mix(base, vec3(0.0), metallic) +
         reflected_light;
 
-    color = vec4(result, 1);
+    color = texture(tex, v_texcoord) + vec4(result, 1.0);
+    //vec4(texture, 1);
 }
