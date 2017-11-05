@@ -13,12 +13,20 @@ void abort(std::string message)
 
 void Material::use(GLint* material_uniforms)
 {
+	static long bound;
+
+	long mat_id = v[0] + v[1] * 10 + v[2] * 100;
+
+	if(bound == mat_id) return;
+
 	for(int i = 3; i--;)
 	{
 		glActiveTexture(GL_TEXTURE0 + i);
 		glBindTexture(GL_TEXTURE_2D, v[i]);
 		glUniform1i(material_uniforms[i], i);
 	}
+
+	bound = mat_id;
 }
 
 

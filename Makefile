@@ -3,7 +3,7 @@ $(eval OS := $(shell uname))
 CXX=g++
 CFLAGS=--std=c++11 -g -O0
 INC=-I/usr/local/include
-SRCS=body.cpp geo.cpp form.cpp camera.cpp cli.cpp cli.cpp world.cpp main.cpp
+SRCS=body.cpp geo.cpp form.cpp camera.cpp cli.cpp cli.cpp world.cpp material.cpp main.cpp
 LINK=-lode -lpng
 
 ifeq ($(OS),Darwin)
@@ -24,4 +24,5 @@ botshop: $(addprefix obj/,$(SRCS:.cpp=.o))
 	$(CXX) $(CFLAGS) $(INC) $^ -o $@ $(LINK)
 
 clean:
+	rm botshop
 	rm -rf obj

@@ -17,8 +17,6 @@
 #ifdef __linux__
 #include <GL/glx.h>
 #include <GL/glext.h>
-#else
-#include <OpenGL/gl3.h>
 #endif
 #include <GLFW/glfw3.h>
 // #include <GL/glew.h>
@@ -28,6 +26,27 @@
 #include "interfaces.hpp"
 
 namespace botshop {
+
+
+static float randf(float f)
+{
+	return f * (random() % 2048) / 2048.f;
+}
+
+
+static bool gl_get_error()
+{
+	GLenum err = GL_NO_ERROR;
+	bool good = true;
+
+	while((err = glGetError()) != GL_NO_ERROR)
+	{
+		std::cerr << "GL_ERROR: 0x" << std::hex << err << std::endl;
+		good = false;
+	}
+
+	return good;
+}
 
 static char* str_from_file(const char* path)
 {
