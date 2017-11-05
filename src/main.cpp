@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <getopt.h>
 
+#ifdef __APPLE__
 #include <OpenGL/gl3.h>
+#endif
 #include "core.h"
 #include "body.hpp"
 #include "form.hpp"
@@ -260,6 +262,10 @@ int main(int argc, char* argv[])
 
 	vec4 material = { 0.1, 0.1, 1, 0.01 };
 	vec4 albedo = { 1, 1, 1, 1 };
+
+	glUniform4fv(material_uniform, 1, (GLfloat*)material);
+	glUniform4fv(albedo_uniform, 1, (GLfloat*)albedo);
+
 
 	brick_material->use(material_uniforms);
 

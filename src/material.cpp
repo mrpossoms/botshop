@@ -30,7 +30,7 @@ void Material::use(GLint* material_uniforms)
 }
 
 
-static GLuint load_texture(std::string path)
+GLuint MaterialFactory::load_texture(std::string path)
 {
 	char header[8];    // 8 is the maximum size that can be checked
 	png_structp png_ptr = {};
@@ -142,6 +142,7 @@ static GLuint load_texture(std::string path)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glGenerateMipmap(GL_TEXTURE_2D);
 
 	assert(gl_get_error());
 

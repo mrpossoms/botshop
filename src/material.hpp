@@ -17,6 +17,7 @@ union Material {
 class MaterialFactory
 {
 public:
+	static GLuint load_texture(std::string path);
 	static Material* get_material(const std::string path);
 };
 
