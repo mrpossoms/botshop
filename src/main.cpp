@@ -207,23 +207,25 @@ int main(int argc, char* argv[])
 
 	botshop::Material* brick_material = botshop::MaterialFactory::get_material("data/brick");
 
-	botshop::Camera cam(world, M_PI / 4, 160, 120);
+	botshop::Camera cam(world, M_PI / 8, 160, 120);
 
 	Vec3 cd = car_model->box_dimensions();
 	printf("%f %f %f\n", cd.x, cd.y, cd.z);
 
 	// car_body.is_a_mesh(car_model)->position(0, 0, 9);
-	car_body.is_a_box(cd.x, cd.y, cd.z)->position(0, 0, 8);
-	wheel0.is_a_sphere(0.082)->position(0.15, 0.15, 8);
-	wheel1.is_a_sphere(0.082)->position(-0.15, 0.15, 8);
-	wheel2.is_a_sphere(0.082)->position(-0.15, -0.15, 8);
-	wheel3.is_a_sphere(0.082)->position(0.15, -0.15, 8);
+	car_body.is_a_box(cd.x, cd.y, cd.z)->position(0, 0, 1);
+	wheel0.is_a_sphere(0.082)->position(0.15, 0.15, 1);
+	wheel1.is_a_sphere(0.082)->position(-0.15, 0.15, 1);
+	wheel2.is_a_sphere(0.082)->position(-0.15, -0.15, 1);
+	wheel3.is_a_sphere(0.082)->position(0.15, -0.15, 1);
 	car_body + botshop::Joint::wheel(wheel0, Vec3(0, 0, 1), Vec3(1, 0, 0));
 	car_body + botshop::Joint::wheel(wheel1, Vec3(0, 0, 1), Vec3(1, 0, 0));
-	car_body + botshop::Joint::wheel(wheel2, Vec3(0, 0, 1), Vec3(1, 0, 0));
-	car_body + botshop::Joint::wheel(wheel3, Vec3(0, 0, 1), Vec3(1, 0, 0));
+	botshop::Joint* rear_wheel_axle0 = botshop::Joint::wheel(wheel2, Vec3(0, 0, 1), Vec3(1, 0, 0));
+	botshop::Joint* rear_wheel_axle1 = botshop::Joint::wheel(wheel3, Vec3(0, 0, 1), Vec3(1, 0, 0));
 
-	box0.is_a_box(2, 2, 2)->position(0, 0, 5);
+	car_body.attach(rear_wheel_axle0);
+
+	box0.is_a_box(2, 2, 2)->position(0, 2, 5);
 	box1.is_a_box(2, 2, 2)->position(-3, 0, 10);
 	box2.is_a_box(2, 2, 2)->position(3, 0, 10);
 
@@ -254,7 +256,7 @@ int main(int argc, char* argv[])
 	world += wheel1;
 	world += wheel2;
 	world += wheel3;
-	world += box0;
+	// world += box0;
 	world += box1;
 	world += box2;
 	world += cam;
@@ -262,7 +264,6 @@ int main(int argc, char* argv[])
  // 	cam.torque(1, 0, 1);
 
  	car_body.torque(botshop::randf(20) - 10, botshop::randf(20) - 10, botshop::randf(20) - 10);
-	//cam.force(1, 0, 0);
 
 	box0.torque(botshop::randf(20) - 10, botshop::randf(20) - 10, botshop::randf(20) - 10);
 	box1.torque(botshop::randf(20) - 10, botshop::randf(20) - 10, botshop::randf(20) - 10);
@@ -284,8 +285,16 @@ int main(int argc, char* argv[])
 
 	assert(botshop::gl_get_error());
 
+	time_t now = time(NULL);
+	int frames = 0;
+
 	while(!glfwWindowShouldClose(win))
 	{
+		dJointSetHinge2Param (rear_wheel_axle0->ode_joint,dParamVel2,-0.1);
+	    dJointSetHinge2Param (rear_wheel_axle0->ode_joint,dParamFMax2,0.1);
+		dJointSetHinge2Param (rear_wheel_axle1->ode_joint,dParamVel2,-0.1);
+	    dJointSetHinge2Param (rear_wheel_axle1->ode_joint,dParamFMax2,0.1);
+
 		world.step(0.05);
 		cam.position(0, 0, 10);
 
@@ -299,6 +308,15 @@ int main(int argc, char* argv[])
 
 		glfwPollEvents();
 		glfwSwapBuffers(win);
+
+		if(now != time(NULL))
+		{
+			now = time(NULL);
+			std::cerr << frames << "fps\n";
+			frames = 0;
+		}
+
+		++frames;
 	}
 
 	return 0;
