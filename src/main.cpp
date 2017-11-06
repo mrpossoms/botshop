@@ -200,18 +200,28 @@ int main(int argc, char* argv[])
 	botshop::Form box0(world, box_model);
 	botshop::Form box1(world, box_model);
 	botshop::Form box2(world, box_model);
-	botshop::Form wheel(world, wheel_model);
+	botshop::Form wheel0(world, wheel_model);
+	botshop::Form wheel1(world, wheel_model);
+	botshop::Form wheel2(world, wheel_model);
+	botshop::Form wheel3(world, wheel_model);
 
 	botshop::Material* brick_material = botshop::MaterialFactory::get_material("data/brick");
 
 	botshop::Camera cam(world, M_PI / 4, 160, 120);
 
 	Vec3 cd = car_model->box_dimensions();
-	// printf("%f %f %f\n", car_dims.x, car_dims.y, car_dims.z);
+	printf("%f %f %f\n", cd.x, cd.y, cd.z);
 
 	// car_body.is_a_mesh(car_model)->position(0, 0, 9);
 	car_body.is_a_box(cd.x, cd.y, cd.z)->position(0, 0, 8);
-	car_body.is_a_sphere(0.082)->position(0, 0, 9);
+	wheel0.is_a_sphere(0.082)->position(0.15, 0.15, 8);
+	wheel1.is_a_sphere(0.082)->position(-0.15, 0.15, 8);
+	wheel2.is_a_sphere(0.082)->position(-0.15, -0.15, 8);
+	wheel3.is_a_sphere(0.082)->position(0.15, -0.15, 8);
+	car_body + botshop::Joint::wheel(wheel0, Vec3(0, 0, 1), Vec3(1, 0, 0));
+	car_body + botshop::Joint::wheel(wheel1, Vec3(0, 0, 1), Vec3(1, 0, 0));
+	car_body + botshop::Joint::wheel(wheel2, Vec3(0, 0, 1), Vec3(1, 0, 0));
+	car_body + botshop::Joint::wheel(wheel3, Vec3(0, 0, 1), Vec3(1, 0, 0));
 
 	box0.is_a_box(2, 2, 2)->position(0, 0, 5);
 	box1.is_a_box(2, 2, 2)->position(-3, 0, 10);
@@ -240,7 +250,10 @@ int main(int argc, char* argv[])
 	assert(botshop::gl_get_error());
 
 	world += car_body;
-	world += wheel;
+	world += wheel0;
+	world += wheel1;
+	world += wheel2;
+	world += wheel3;
 	world += box0;
 	world += box1;
 	world += box2;

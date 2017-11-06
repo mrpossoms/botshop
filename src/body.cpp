@@ -62,8 +62,8 @@ Body* Body::attach(const Joint* joint)
 
 Body* Body::is_a_box(float width, float height, float length)
 {
-	ode_geo = dCreateBox(0, length, width, height);
-	dMassSetBox(&ode_mass, 1, length, width, height);
+	ode_geo = dCreateBox(0, width, height, length);
+	dMassSetBox(&ode_mass, 1, width, height, length);
 	dGeomSetBody(ode_geo, ode_body);
 	dSpaceAdd(space, ode_geo);
 
