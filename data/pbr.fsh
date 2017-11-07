@@ -186,19 +186,18 @@ void main() {
     // constant base specular factor of 0.04 grey is used
     vec3 specular = mix(vec3(0.04), base, metallic);
 
+    // TODO: put env map back
     // diffuse IBL term
     //    I know that my IBL cubemap has diffuse pre-integrated value in 10th MIP level
     //    actually level selection should be tweakable or from separate diffuse cubemap
     mat3x3 tnrm = transpose(normal_matrix);
-    vec3 envdiff = textureLod(envd, tnrm * N, 10).xyz;
+    vec3 envdiff = vec3(0.5);//textureLod(envd, tnrm * N, 10).xyz;
 
     // specular IBL term
     //    11 magic number is total MIP levels in cubemap, this is simplest way for picking
     //    MIP level from roughness value (but it's not correct, however it looks fine)
     vec3 refl = tnrm * reflect(-V, N);
-    vec3 envspec = textureLod(
-        envd, refl, max(roughness * 11.0, textureQueryLod(envd, refl).y)
-    ).xyz;
+    vec3 envspec = vec3(0.5);//textureLod(envd, refl, max(roughness * 11.0, textureQueryLod(envd, refl).y)).xyz;
 
     // compute material reflectance
 
@@ -246,7 +245,7 @@ void main() {
     diffuse_light += diffref * light_color;
 
     // IBL lighting
-    vec2 brdf = vec2(1, 0);// texture(iblbrdf, vec2(roughness, 1.0 - NdV)).xy;
+    vec2 brdf = texture(iblbrdf, vec2(roughness, NdV)).xy;
     vec3 iblspec = min(vec3(0.99), fresnel_factor(specular, NdV) * brdf.x + brdf.y);
     reflected_light += iblspec * envspec;
     diffuse_light += envdiff * (1.0 / PI);

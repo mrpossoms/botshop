@@ -37,6 +37,7 @@ GLFWwindow* init_glfw()
 	}
 
 	glfwMakeContextCurrent(win);
+	glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
 	GLuint vao;
 	glGenVertexArrays(1, &vao);
@@ -165,6 +166,71 @@ GLint program(GLint vertex, GLint frag, const char** attributes)
 	return prog;
 }
 
+double lx, ly;
+void free_fly(GLFWwindow* win, botshop::Camera& cam)
+{
+	static bool setup;
+	double x = 0, y = 0;
+	double dx, dy;
+
+	glfwGetCursorPos(win, &x, &y);
+
+	if(!setup)
+	{
+		lx = x;
+		ly = y;
+		setup = true;
+	}
+
+	dx = x - lx; dy = y - ly;
+
+	{
+		Quat q = cam.orientation();
+		Quat pitch, yaw;
+
+		pitch.from_axis_angle(VEC3_LEFT.v[0], VEC3_LEFT.v[1], VEC3_LEFT.v[2], dy * 0.01);
+		yaw.from_axis_angle(VEC3_UP.v[0], VEC3_UP.v[1], VEC3_UP.v[2], dx * 0.01);
+		pitch = pitch * yaw;
+		q = pitch * q;
+		cam.orientation(q);
+
+		Vec3 forward, left, up;
+
+		quat_conj(q.v, q.v);
+		quat_mul_vec3(forward.v, q.v, VEC3_FORWARD.v);
+		quat_mul_vec3(left.v, q.v, VEC3_LEFT.v);
+		quat_mul_vec3(up.v, q.v, VEC3_UP.v);
+
+		int keys[] = {
+			GLFW_KEY_W,
+			GLFW_KEY_S,
+			GLFW_KEY_D,
+			GLFW_KEY_A,
+			GLFW_KEY_SPACE,
+			GLFW_KEY_LEFT_SHIFT,
+		};
+
+		const float speed = 0.05;
+		Vec3 dirs[] = {
+			forward * -speed,
+			forward *  speed,
+			left    *  speed,
+			left    * -speed,
+			up      *  speed,
+			up      * -speed,
+		};
+
+		for(int i = sizeof(keys) / sizeof(int); i--;)
+		if(glfwGetKey(win, keys[i]) == GLFW_PRESS)
+		{
+			Vec3 pos = cam.position() + dirs[i];
+			cam.position(pos);
+		}
+	}
+
+	lx = x; ly = y;
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -206,8 +272,9 @@ int main(int argc, char* argv[])
 	botshop::Form wheel3(world, wheel_model);
 
 	botshop::Material* brick_material = botshop::MaterialFactory::get_material("data/brick");
+	GLuint BRDF_LUT = botshop::MaterialFactory::load_texture("data/brdfLUT.png");
 
-	botshop::Camera cam(world, M_PI / 8, 160, 120);
+	botshop::Camera cam(world, M_PI / 4, 160, 120);
 
 	Vec3 cd = car_model->box_dimensions();
 	printf("%f %f %f\n", cd.x, cd.y, cd.z);
@@ -218,12 +285,12 @@ int main(int argc, char* argv[])
 	wheel1.is_a_sphere(0.082)->position(-0.15, 0.15, 1);
 	wheel2.is_a_sphere(0.082)->position(-0.15, -0.15, 1);
 	wheel3.is_a_sphere(0.082)->position(0.15, -0.15, 1);
-	car_body + botshop::Joint::wheel(wheel0, Vec3(0, 0, 1), Vec3(1, 0, 0));
-	car_body + botshop::Joint::wheel(wheel1, Vec3(0, 0, 1), Vec3(1, 0, 0));
-	botshop::Joint* rear_wheel_axle0 = botshop::Joint::wheel(wheel2, Vec3(0, 0, 1), Vec3(1, 0, 0));
-	botshop::Joint* rear_wheel_axle1 = botshop::Joint::wheel(wheel3, Vec3(0, 0, 1), Vec3(1, 0, 0));
+	// car_body + botshop::Joint::wheel(wheel0, Vec3(0, 0, 1), Vec3(1, 0, 0));
+	// car_body + botshop::Joint::wheel(wheel1, Vec3(0, 0, 1), Vec3(1, 0, 0));
+	// botshop::Joint* rear_wheel_axle0 = botshop::Joint::wheel(wheel2, Vec3(0, 0, 1), Vec3(1, 0, 0));
+	// botshop::Joint* rear_wheel_axle1 = botshop::Joint::wheel(wheel3, Vec3(0, 0, 1), Vec3(1, 0, 0));
 
-	car_body.attach(rear_wheel_axle0);
+	// car_body.attach(rear_wheel_axle0);
 
 	box0.is_a_box(2, 2, 2)->position(0, 2, 5);
 	box1.is_a_box(2, 2, 2)->position(-3, 0, 10);
@@ -274,7 +341,7 @@ int main(int argc, char* argv[])
 		.norm_uniform  = norm_uniform,
 	};
 
-	vec4 material = { 0.1, 0.1, 1, 0.01 };
+	vec4 material = { 0.1, 0.01, 1, 0.01 };
 	vec4 albedo = { 1, 1, 1, 1 };
 
 	glUniform4fv(material_uniform, 1, (GLfloat*)material);
@@ -283,6 +350,10 @@ int main(int argc, char* argv[])
 
 	brick_material->use(material_uniforms);
 
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, BRDF_LUT);
+	glUniform1i(glGetUniformLocation(prog, "iblbrdf"), 4);
+
 	assert(botshop::gl_get_error());
 
 	time_t now = time(NULL);
@@ -290,13 +361,16 @@ int main(int argc, char* argv[])
 
 	while(!glfwWindowShouldClose(win))
 	{
-		dJointSetHinge2Param (rear_wheel_axle0->ode_joint,dParamVel2,-0.1);
-	    dJointSetHinge2Param (rear_wheel_axle0->ode_joint,dParamFMax2,0.1);
-		dJointSetHinge2Param (rear_wheel_axle1->ode_joint,dParamVel2,-0.1);
-	    dJointSetHinge2Param (rear_wheel_axle1->ode_joint,dParamFMax2,0.1);
+		// dJointSetHinge2Param (rear_wheel_axle0->ode_joint,dParamVel2,-0.1);
+	    // dJointSetHinge2Param (rear_wheel_axle0->ode_joint,dParamFMax2,0.1);
+		// dJointSetHinge2Param (rear_wheel_axle1->ode_joint,dParamVel2,-0.1);
+	    // dJointSetHinge2Param (rear_wheel_axle1->ode_joint,dParamFMax2,0.1);
+		Vec3 cam_pos = cam.position();
 
 		world.step(0.05);
-		cam.position(0, 0, 10);
+		cam.position(cam_pos);
+
+		free_fly(win, cam);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

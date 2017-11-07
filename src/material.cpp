@@ -1,5 +1,8 @@
 #include "material.hpp"
 #include <png.h>
+#ifdef __APPLE__
+#include <OpenGL/gl3.h>
+#endif
 
 using namespace botshop;
 
@@ -40,6 +43,8 @@ GLuint MaterialFactory::load_texture(std::string path)
 	png_byte bit_depth;
 	int width, height;
 	int number_of_passes;
+	GLuint tex;
+	GLenum gl_color_type;
 
 	std::cerr << "loading texture '" <<  path << "'... ";
 
@@ -90,12 +95,26 @@ GLuint MaterialFactory::load_texture(std::string path)
 		abort("[read_png_file] Error during read_image");
 	}
 
+	int color_components;
+	switch (color_type) {
+		case PNG_COLOR_TYPE_RGBA:
+			gl_color_type = GL_RGBA;
+			color_components = 4;
+			break;
+		case PNG_COLOR_TYPE_PALETTE:
+		case PNG_COLOR_TYPE_RGB:
+			gl_color_type = GL_RGB;
+			color_components = 3;
+			break;
+	}
+
 	row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * height);
-	char pixel_buf[3 * width * height];
+	char pixel_buf[color_components * width * height];
 
 	for (int y = 0; y < height; y++)
 	{
 		row_pointers[y] = (png_byte*) malloc(png_get_rowbytes(png_ptr,info_ptr));
+		assert(row_pointers[y]);
 	}
 
 	png_read_image(png_ptr, row_pointers);
@@ -110,24 +129,13 @@ GLuint MaterialFactory::load_texture(std::string path)
 
 	fclose(fp);
 
-	GLuint tex;
-	GLenum gl_color_type;
-
-	switch (color_type) {
-		case PNG_COLOR_TYPE_RGBA:
-			gl_color_type = GL_RGBA;
-			break;
-		case PNG_COLOR_TYPE_PALETTE:
-		case PNG_COLOR_TYPE_RGB:
-			gl_color_type = GL_RGB;
-			break;
-	}
-
 	assert(gl_get_error());
 	glGenTextures(1, &tex);
 	assert(gl_get_error());
 
 	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 10);
 	glTexImage2D(
 		GL_TEXTURE_2D,
 		0,
