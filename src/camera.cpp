@@ -13,7 +13,7 @@ Camera::Camera(World& world,
 }
 
 
-Camera* Camera::view_projection(mat4x4 vp)
+Viewer* Camera::view_projection(mat4x4 vp)
 {
 	mat4x4 view;
 
@@ -27,7 +27,7 @@ Camera* Camera::view_projection(mat4x4 vp)
 }
 
 
-Camera* Camera::view(mat4x4 v)
+Viewer* Camera::view(mat4x4 v)
 {
 	Vec3 pos = position();
 	mat4x4_from_quat(v, orientation().v);
@@ -37,7 +37,7 @@ Camera* Camera::view(mat4x4 v)
 }
 
 
-Camera* Camera::projection(mat4x4 p)
+Viewer* Camera::projection(mat4x4 p)
 {
 	mat4x4_dup(p, _projection);
 

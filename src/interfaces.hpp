@@ -30,10 +30,31 @@ struct DrawParams {
 	GLint norm_uniform;
 };
 
+class Viewer
+{
+public:
+	virtual Viewer* view_projection(mat4x4 vp) = 0;
+	virtual Viewer* view(mat4x4 v) = 0;
+	virtual Viewer* projection(mat4x4 p) = 0;
+};
+
 class Drawable
 {
 public:
 	virtual void draw(DrawParams* params) = 0;
+};
+
+class Scene
+{
+public:
+	virtual void draw(DrawParams* params) = 0;
+	virtual std::vector<Drawable*>& drawables() = 0;
+};
+
+class Renderer
+{
+public:
+	virtual void draw(Viewer* viewer, Scene* scene) = 0;
 };
 
 }

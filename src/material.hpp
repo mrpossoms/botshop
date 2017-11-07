@@ -17,6 +17,8 @@ union Material {
 class MaterialFactory
 {
 public:
+	static GLuint create_framebuffer(int width, int height);
+	static GLuint create_texture(int width, int height, GLenum format, void* data);
 	static GLuint load_texture(std::string path);
 	static Material* get_material(const std::string path);
 };

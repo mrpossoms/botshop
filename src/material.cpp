@@ -7,7 +7,37 @@
 using namespace botshop;
 
 
-GLuint create_texture(int width, int height, GLenum format, void* pixel_buf)
+GLuint MaterialFactory::create_framebuffer(int width, int height)
+{
+	GLuint framebuffer;
+	GLuint depth;
+
+	glGenFramebuffers(1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+	GLuint color = create_texture(width, height, GL_RGB, NULL);
+
+	glFramebufferTexture2D(
+		GL_FRAMEBUFFER,
+		GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D,
+		color,
+		0
+	);
+
+	glGenRenderbuffers(1, &depth);
+	glBindRenderbuffer(GL_RENDERBUFFER, depth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
+
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth);
+
+	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+
+	return framebuffer;
+}
+//------------------------------------------------------------------------------
+
+GLuint MaterialFactory::create_texture(int width, int height, GLenum format, void* data)
 {
 	GLuint tex;
 
@@ -26,7 +56,7 @@ GLuint create_texture(int width, int height, GLenum format, void* pixel_buf)
 		0,
 		format,
 		GL_UNSIGNED_BYTE,
-		(void*)pixel_buf
+		(void*)data
 	);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -36,14 +66,14 @@ GLuint create_texture(int width, int height, GLenum format, void* pixel_buf)
 
 	return tex;
 }
-
+//------------------------------------------------------------------------------
 
 void abort(std::string message)
 {
 	std::cerr << message << std::endl;
 	exit(-1);
 }
-
+//------------------------------------------------------------------------------
 
 void Material::use(GLint* material_uniforms)
 {
@@ -62,7 +92,7 @@ void Material::use(GLint* material_uniforms)
 
 	bound = mat_id;
 }
-
+//------------------------------------------------------------------------------
 
 GLuint MaterialFactory::load_texture(std::string path)
 {
@@ -168,7 +198,7 @@ GLuint MaterialFactory::load_texture(std::string path)
 
 	return tex;
 }
-
+//------------------------------------------------------------------------------
 
 Material* MaterialFactory::get_material(const std::string path)
 {

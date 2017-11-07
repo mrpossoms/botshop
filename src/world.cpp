@@ -8,7 +8,7 @@ static void near_callback (void *data, dGeomID o1, dGeomID o2)
 	if(o1 == world->ground ^ o1 == world->ground) return;
 
 	dBodyID b1 = dGeomGetBody(o1);
-  dBodyID b2 = dGeomGetBody(o2);
+	dBodyID b2 = dGeomGetBody(o2);
 
     const int MAX_CONTACTS = 8;
     dContact contact[MAX_CONTACTS];
@@ -24,7 +24,7 @@ static void near_callback (void *data, dGeomID o1, dGeomID o2)
         dJointAttach (c, b1, b2);
 	}
 }
-
+//------------------------------------------------------------------------------
 
 World::World()
 {
@@ -60,22 +60,28 @@ World::World()
 	);
 
 }
-
+//------------------------------------------------------------------------------
 
 World::~World()
 {
 
 }
-
+//------------------------------------------------------------------------------
 
 World* World::operator+=(Dynamic& dynamic)
 {
 	dynamic.add_all();
-	bodies.push_back(&dynamic);
+	dynamic_set.push_back(&dynamic);
+
+	Drawable* form = dynamic_cast<Drawable*>(&dynamic);
+	if(form)
+	{
+		drawable_set.push_back(form);
+	}
 
 	return this;
 }
-
+//------------------------------------------------------------------------------
 
 void World::step(float dt)
 {
@@ -83,7 +89,13 @@ void World::step(float dt)
 	dWorldQuickStep(ode_world, dt);
 	dJointGroupEmpty(ode_contact_group);
 }
+//------------------------------------------------------------------------------
 
+std::vector<Drawable*>& World::drawables()
+{
+	return drawable_set;
+}
+//------------------------------------------------------------------------------
 
 void World::draw(DrawParams* params)
 {
@@ -110,7 +122,7 @@ void World::draw(DrawParams* params)
 		glDisableVertexAttribArray(i);
 	}
 
-	for(Dynamic* body : bodies)
+	for(Dynamic* body : dynamic_set)
 	{
 
 		Drawable* form = dynamic_cast<Drawable*>(body);
