@@ -186,20 +186,31 @@ void free_fly(GLFWwindow* win, botshop::Camera& cam)
 
 	{
 		Quat q = cam.orientation();
-		Quat pitch, yaw;
+		Quat pitch, yaw, roll;
+		Vec3 forward, left, up;
 
 		pitch.from_axis_angle(VEC3_LEFT.v[0], VEC3_LEFT.v[1], VEC3_LEFT.v[2], dy * 0.01);
 		yaw.from_axis_angle(VEC3_UP.v[0], VEC3_UP.v[1], VEC3_UP.v[2], dx * 0.01);
 		pitch = pitch * yaw;
 		q = pitch * q;
+
+		quat q_star;
+		quat_conj(q_star, q.v);
+		quat_mul_vec3(forward.v, q_star, VEC3_FORWARD.v);
+		quat_mul_vec3(left.v, q_star, VEC3_LEFT.v);
+		quat_mul_vec3(up.v, q_star, VEC3_UP.v);
+
+		if(glfwGetKey(win, GLFW_KEY_Q) == GLFW_PRESS)
+		{
+			roll.from_axis_angle(VEC3_FORWARD.x, VEC3_FORWARD.y, VEC3_FORWARD.z, -0.025);
+		}
+		if(glfwGetKey(win, GLFW_KEY_E) == GLFW_PRESS)
+		{
+			roll.from_axis_angle(VEC3_FORWARD.x, VEC3_FORWARD.y, VEC3_FORWARD.z, 0.025);
+		}
+
+		q = roll * q;
 		cam.orientation(q);
-
-		Vec3 forward, left, up;
-
-		quat_conj(q.v, q.v);
-		quat_mul_vec3(forward.v, q.v, VEC3_FORWARD.v);
-		quat_mul_vec3(left.v, q.v, VEC3_LEFT.v);
-		quat_mul_vec3(up.v, q.v, VEC3_UP.v);
 
 		int keys[] = {
 			GLFW_KEY_W,

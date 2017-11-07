@@ -34,7 +34,7 @@ uniform sampler2D iblbrdf; // IBL BRDF normalization precalculated tex
 
 
 // constant light position, only one light source for testing (treated as point light)
-const vec4 light_pos = vec4(0, 5, 20, 1);
+const vec4 light_pos = vec4(0, 1e6, 1e6, 1);
 
 
 // handy value clamping to 0 - 1 range
@@ -142,7 +142,7 @@ void main() {
     vec3 local_light_pos = (view_matrix * (/*world_matrix */ light_pos)).xyz;
 
     // light attenuation
-    float A = 1000.0 / dot(local_light_pos - v_pos, local_light_pos - v_pos);
+    float A = 1.0;// / dot(local_light_pos - v_pos, local_light_pos - v_pos);
 
     // L, V, H vectors
     vec3 L = normalize(local_light_pos - v_pos);
