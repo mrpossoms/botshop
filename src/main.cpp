@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
 
 	botshop::Model* car_model = botshop::ModelFactory::get_model("data/car_body.obj");
 	botshop::Model* wheel_model = botshop::ModelFactory::get_model("data/wheel.obj");
-	botshop::Model* box_model = botshop::ModelFactory::get_model("data/untitled.obj");
+	botshop::Model* box_model = botshop::ModelFactory::get_model("data/sphereized_cube.obj");
 
 	botshop::Form car_body(world, car_model);
 	botshop::Form box0(world, box_model);
@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 	botshop::Form wheel3(world, wheel_model);
 
 
-	botshop::Camera cam(world, M_PI / 4, 160, 120);
+	botshop::Camera cam(world, M_PI / 2, 160, 120);
 
 	// GLuint framebuffer = botshop::MaterialFactory::create_framebuffer(256, 256);
 	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -62,8 +62,8 @@ int main(int argc, char* argv[])
 	// car_body.attach(rear_wheel_axle0);
 
 	box0.is_a_box(2, 2, 2)->position(0, 2, 5);
-	box1.is_a_box(2, 2, 2)->position(-3, 0, 10);
-	box2.is_a_box(2, 2, 2)->position(3, 0, 10);
+	box1.is_a_box(2, 2, 2)->position(-3, 0, 2);
+	box2.is_a_box(2, 2, 2)->position(3, 0, 2);
 
 	cam.is_a_sphere(0.05)->position(0, 0, 10);
 
@@ -98,6 +98,8 @@ int main(int argc, char* argv[])
 
 		world.step(0.05);
 		cam.position(cam_pos);
+
+		box1.position(-3, 0, 2);
 
 		renderer->draw(&cam, &world);
 

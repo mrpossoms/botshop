@@ -24,7 +24,8 @@ void main()
 	v_binormal = normal_matrix * tangent;
 	v_binormal = cross(v_normal, v_binormal);
 
-	vec4 view_space = view_matrix * world_matrix * vec4(position, 1.0);
+	vec4 world_space = world_matrix * vec4(position, 1.0);
+	vec4 view_space = view_matrix * world_space;
 	gl_Position = proj_matrix * view_space;
 
 	v_pos = view_space.xyz;

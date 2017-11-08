@@ -22,19 +22,24 @@ EnvironmentMap::EnvironmentMap(int res)
 	};
 
 	glGenTextures(1, &map);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, map);
+
+	assert(gl_get_error());
 
 	for(int i = 6; i--;)
 	{
 		glTexImage2D(sides[i], 0, GL_RGB, res, res, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	}
 
+	assert(gl_get_error());
+
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	assert(gl_get_error());
 
 	framebuffer = MaterialFactory::create_framebuffer(res, res, Framebuffer::depth_flag);
 }
@@ -46,44 +51,6 @@ void EnvironmentMap::render_to(GLenum face)
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, face, map, 0);
 	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
-}
-//------------------------------------------------------------------------------
-
-static GLFWwindow* init_glfw()
-{
-	if (!glfwInit()){
-		fprintf(stderr, "glfwInit() failed\n");
-		exit(-1);
-	}
-
-	glfwWindowHint(GLFW_SAMPLES, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	GLFWwindow* win = glfwCreateWindow(640, 480, "botshop", NULL, NULL);
-
-	if (!win){
-		glfwTerminate();
-		fprintf(stderr, "glfwCreateWindow() failed\n");
-		exit(-2);
-	}
-
-	glfwMakeContextCurrent(win);
-	glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-
-	GLuint vao;
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
-	glCullFace(GL_BACK);
-	glEnable(GL_CULL_FACE);
-	glEnable(GL_DEPTH_TEST);
-
-	assert(gl_get_error());
-
-	return win;
 }
 //------------------------------------------------------------------------------
 
@@ -150,7 +117,7 @@ static GLint load_shader(const char* path, GLenum type)
 }
 //------------------------------------------------------------------------------
 
-static GLint program(GLint vertex, GLint frag, const char** attributes)
+static GLint link_program(GLint vertex, GLint frag, const char** attributes)
 {
 	GLint status;
 	GLint logLength;
@@ -197,6 +164,64 @@ static GLint program(GLint vertex, GLint frag, const char** attributes)
 	glDeleteShader(frag);
 
 	return prog;
+}
+//------------------------------------------------------------------------------
+
+Shader::Shader(GLint vertex, GLint frag)
+{
+	const char* attrs[] = {
+		"position", "normal", "tangent", "texcoord", NULL
+	};
+
+	program = link_program(vertex, frag, attrs);
+
+	draw_params.world_uniform = glGetUniformLocation(program, "world_matrix");
+	draw_params.norm_uniform  = glGetUniformLocation(program, "normal_matrix");
+	draw_params.view_uniform  = glGetUniformLocation(program, "view_matrix");
+	draw_params.proj_uniform  = glGetUniformLocation(program, "proj_matrix");
+
+	draw_params.material_uniforms.tex  = glGetUniformLocation(program, "tex");
+	draw_params.material_uniforms.norm = glGetUniformLocation(program, "norm");
+	draw_params.material_uniforms.spec = glGetUniformLocation(program, "spec");
+	draw_params.material_uniforms.envd = glGetUniformLocation(program, "envd");
+}
+
+//------------------------------------------------------------------------------
+static GLFWwindow* init_glfw()
+{
+	if (!glfwInit()){
+		fprintf(stderr, "glfwInit() failed\n");
+		exit(-1);
+	}
+
+	glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+	GLFWwindow* win = glfwCreateWindow(640, 480, "botshop", NULL, NULL);
+
+	if (!win){
+		glfwTerminate();
+		fprintf(stderr, "glfwCreateWindow() failed\n");
+		exit(-2);
+	}
+
+	glfwMakeContextCurrent(win);
+	glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+
+	GLuint vao;
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
+
+	assert(gl_get_error());
+
+	return win;
 }
 //------------------------------------------------------------------------------
 
@@ -283,14 +308,14 @@ RendererGL::RendererGL(std::string data_path)
 
 	assert(gl_get_error());
 
-	const char* attrs[] = {
-		"position", "normal", "tangent", "texcoord", NULL
-	};
-	shader_prog = program(
+	simple_shader = new Shader(
 		load_shader("data/basic.vsh", GL_VERTEX_SHADER),
-		load_shader("data/pbr.fsh", GL_FRAGMENT_SHADER),
-		// load_shader("data/basic.fsh", GL_FRAGMENT_SHADER),
-		attrs
+		load_shader("data/basic.fsh", GL_FRAGMENT_SHADER)
+	);
+
+	pbr_shader = new Shader(
+		load_shader("data/basic.vsh", GL_VERTEX_SHADER),
+		load_shader("data/pbr.fsh", GL_FRAGMENT_SHADER)
 	);
 
 	Material* brick_material = MaterialFactory::get_material("data/brick");
@@ -298,25 +323,12 @@ RendererGL::RendererGL(std::string data_path)
 
 	env = new EnvironmentMap(256);
 
-	glUseProgram(shader_prog);
+	glUseProgram(pbr_shader->program);
 
 	mat4x4 proj, view;
-	GLint world_uniform = glGetUniformLocation(shader_prog, "world_matrix");
-	GLint norm_uniform  = glGetUniformLocation(shader_prog, "normal_matrix");
 
-	GLint material_uniform = glGetUniformLocation(shader_prog, "material");
-	GLint albedo_uniform = glGetUniformLocation(shader_prog, "albedo");
-
-	GLint material_uniforms[] = {
-		glGetUniformLocation(shader_prog, "tex"),
-		glGetUniformLocation(shader_prog, "norm"),
-		glGetUniformLocation(shader_prog, "spec")
-	};
-
-	draw_params = {
-		.world_uniform = world_uniform,
-		.norm_uniform  = norm_uniform,
-	};
+	GLint material_uniform = glGetUniformLocation(pbr_shader->program, "material");
+	GLint albedo_uniform = glGetUniformLocation(pbr_shader->program, "albedo");
 
 	vec4 material = { 0.1, 0.01, 1, 0.01 };
 	vec4 albedo = { 1, 1, 1, 1 };
@@ -324,11 +336,11 @@ RendererGL::RendererGL(std::string data_path)
 	glUniform4fv(material_uniform, 1, (GLfloat*)material);
 	glUniform4fv(albedo_uniform, 1, (GLfloat*)albedo);
 
-	brick_material->use(material_uniforms);
+	brick_material->use(&pbr_shader->draw_params.material_uniforms.tex);
 
-	glActiveTexture(GL_TEXTURE4);
+	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, BRDF_LUT);
-	glUniform1i(glGetUniformLocation(shader_prog, "iblbrdf"), 4);
+	glUniform1i(glGetUniformLocation(pbr_shader->program, "iblbrdf"), 3);
 
 	assert(gl_get_error());
 
@@ -337,12 +349,19 @@ RendererGL::RendererGL(std::string data_path)
 
 void RendererGL::draw_scene(Scene* scene)
 {
+	assert(gl_get_error());
+
 	scene->draw(&draw_params);
+
+	assert(gl_get_error());
 
 	for(auto drawable : scene->drawables())
 	{
 		drawable->draw(&draw_params);
 	}
+
+	assert(gl_get_error());
+
 }
 //------------------------------------------------------------------------------
 
@@ -360,21 +379,30 @@ void RendererGL::draw_to(EnvironmentMap* env, Scene* scene, Vec3 at_location)
 	{
 
 		basis bases[] = {
-			{  VEC3_LEFT, VEC3_DOWN },
-			{ VEC3_RIGHT, VEC3_UP },
-			{    VEC3_UP, VEC3_FORWARD },
 			{    VEC3_UP, VEC3_BACK },
-			{    VEC3_UP, VEC3_RIGHT },
-			{    VEC3_UP, VEC3_LEFT },
+			{    VEC3_UP, VEC3_FORWARD },
+
+
+			{ VEC3_FORWARD, VEC3_UP },
+			{  VEC3_FORWARD, VEC3_DOWN },
+
+
+			{    VEC3_FORWARD, VEC3_RIGHT },
+			{    VEC3_FORWARD, VEC3_LEFT },
+
+
 		};
 		mat4x4_perspective(cube_proj, M_PI / 2, 1, 0.01, 1000);
 
 		for(int i = 6; i--;)
 		{
+			Vec3 eye = at_location;
+			eye += bases[i].forward;
+
 			mat4x4_look_at(
 				cube_views[i],
-				bases[i].forward.v,
 				at_location.v,
+				eye.v,
 				bases[i].up.v
 			);
 		}
@@ -391,37 +419,55 @@ void RendererGL::draw_to(EnvironmentMap* env, Scene* scene, Vec3 at_location)
 		GL_TEXTURE_CUBE_MAP_POSITIVE_X,
 	};
 
-	GLint v_uniform     = glGetUniformLocation(shader_prog, "view_matrix");
-	GLint p_uniform     = glGetUniformLocation(shader_prog, "proj_matrix");
+	glUniformMatrix4fv(draw_params.proj_uniform, 1, GL_FALSE, (GLfloat*)cube_proj);
 
-	glUniformMatrix4fv(p_uniform, 1, GL_FALSE, (GLfloat*)cube_proj);
+	assert(gl_get_error());
 
-	for(int i = 6; i--;)
+	int i = 0;
+	for(; i < 6; i++)
 	{
 		env->render_to(sides[i]);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glUniformMatrix4fv(v_uniform, 1, GL_FALSE, (GLfloat*)cube_views[i]);
+		glUniformMatrix4fv(draw_params.view_uniform, 1, GL_FALSE, (GLfloat*)cube_views[i]);
 		draw_scene(scene);
 	}
+
+	assert(gl_get_error());
 }
 //------------------------------------------------------------------------------
 
 void RendererGL::draw(Viewer* viewer, Scene* scene)
 {
-	mat4x4 view, proj;
-	GLint v_uniform     = glGetUniformLocation(shader_prog, "view_matrix");
-	GLint p_uniform     = glGetUniformLocation(shader_prog, "proj_matrix");
+	assert(gl_get_error());
 
-	draw_to(env, scene, VEC3_UP);
+	mat4x4 view, proj;
+
+	assert(gl_get_error());
+
+	draw_params = simple_shader->draw_params;
+	glUseProgram(simple_shader->program);
+
+	glClearColor(0.2, 0.4, 0.7, 1);
+
+	Vec3 up = VEC3_FORWARD;
+	up *= 4;
+	draw_to(env, scene, up);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	draw_params = pbr_shader->draw_params;
+	glUseProgram(pbr_shader->program);
 
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, env->map);
+	glUniform1i(draw_params.material_uniforms.envd, 4);
+
+	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	viewer->projection(proj)->view(view);
-	glUniformMatrix4fv(v_uniform, 1, GL_FALSE, (GLfloat*)view);
-	glUniformMatrix4fv(p_uniform, 1, GL_FALSE, (GLfloat*)proj);
+	glUniformMatrix4fv(draw_params.view_uniform, 1, GL_FALSE, (GLfloat*)view);
+	glUniformMatrix4fv(draw_params.proj_uniform, 1, GL_FALSE, (GLfloat*)proj);
 
 	draw_scene(scene);
 

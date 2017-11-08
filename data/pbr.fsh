@@ -2,8 +2,8 @@
 #define COOK_BLINN
 #define COOK
 #define USE_ALBEDO_MAP
-#define USE_NORMAL_MAP
-#define USE_ROUGHNESS_MAP
+// #define USE_NORMAL_MAP
+// #define USE_ROUGHNESS_MAP
 
 in vec2 v_texcoord; // texture coords
 in vec3 v_normal;   // normal
@@ -23,12 +23,11 @@ uniform vec4 material; // x - metallic, y - roughness, w - "rim" lighting
 uniform vec4 albedo;   // constant albedo color, used when textures are off
 
 
-uniform samplerCube envd;  // prefiltered env cubemap
 uniform sampler2D tex;     // base texture (albedo)
 uniform sampler2D norm;    // normal map
 uniform sampler2D spec;    // "factors" texture (G channel used as roughness)
 uniform sampler2D iblbrdf; // IBL BRDF normalization precalculated tex
-
+uniform samplerCube envd;  // prefiltered env cubemap
 
 #define PI 3.1415926
 
@@ -191,13 +190,16 @@ void main() {
     //    I know that my IBL cubemap has diffuse pre-integrated value in 10th MIP level
     //    actually level selection should be tweakable or from separate diffuse cubemap
     mat3x3 tnrm = transpose(normal_matrix);
-    vec3 envdiff = vec3(0.5);//textureLod(envd, tnrm * N, 10).xyz;
+    vec3 envdiff = textureLod(envd, tnrm * N, 10).xyz;
+    // vec3 envdiff = texture(envd, tnrm * N).xyz;
 
     // specular IBL term
     //    11 magic number is total MIP levels in cubemap, this is simplest way for picking
     //    MIP level from roughness value (but it's not correct, however it looks fine)
     vec3 refl = tnrm * reflect(-V, N);
-    vec3 envspec = vec3(0.5);//textureLod(envd, refl, max(roughness * 11.0, textureQueryLod(envd, refl).y)).xyz;
+    // vec3 envspec = textureLod(envd, refl, max(roughness * 11.0, textureQueryLod(envd, refl).y)).xyz;
+    vec3 envspec = texture(envd, nn).xyz;
+
 
     // compute material reflectance
 
@@ -253,6 +255,6 @@ void main() {
     // final result
     vec3 result = diffuse_light * mix(base, vec3(0.0), metallic) + reflected_light;
 
-    color = vec4(result, 1.0);
+    color = vec4(envspec, 1.0);// + vec4(texture(tex, texcoord)) * 0.1;
     // color = vec4(texture(tex, texcoord));
 }

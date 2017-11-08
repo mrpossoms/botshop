@@ -15,6 +15,13 @@ struct EnvironmentMap {
 	void render_to(GLenum face);
 };
 
+struct Shader {
+	Shader(GLint vertex, GLint frag);
+
+	GLint program;
+	DrawParams draw_params;
+};
+
 class RendererGL : public Renderer
 {
 public:
@@ -27,7 +34,8 @@ private:
 	void draw_scene(Scene* scene);
 	void draw_to(EnvironmentMap* env, Scene* scene, Vec3 at_location);
 
-	GLint shader_prog;
+	Shader* pbr_shader;
+	Shader* simple_shader;
 	DrawParams draw_params;
 	EnvironmentMap* env;
 };

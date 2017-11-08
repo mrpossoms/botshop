@@ -101,11 +101,18 @@ void World::draw(DrawParams* params)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
+	assert(gl_get_error());
+
 	for(int i = 4; i--;)
 	{
 		glEnableVertexAttribArray(i);
+		assert(gl_get_error());
 		glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(vec3) * i));
+		assert(gl_get_error());
+
 	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	mat4x4 world;
 	mat3x3 rot;
@@ -115,19 +122,14 @@ void World::draw(DrawParams* params)
 	glUniformMatrix4fv(params->world_uniform, 1, GL_FALSE, (GLfloat*)world);
 	glUniformMatrix3fv(params->norm_uniform, 1, GL_FALSE, (GLfloat*)rot);
 
+	assert(gl_get_error());
 	glDrawArrays(GL_TRIANGLES, 0, ground_mesh->vert_count());
+	assert(gl_get_error());
 
 	for(int i = 4; i--;)
 	{
 		glDisableVertexAttribArray(i);
 	}
 
-	for(Dynamic* body : dynamic_set)
-	{
-
-		Drawable* form = dynamic_cast<Drawable*>(body);
-		if(!form) continue;
-
-		form->draw(params);
-	}
+	assert(gl_get_error());
 }

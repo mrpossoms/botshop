@@ -28,6 +28,14 @@ public:
 struct DrawParams {
 	GLint world_uniform;
 	GLint norm_uniform;
+	GLint view_uniform;
+	GLint proj_uniform;
+	struct {
+		GLint tex;
+		GLint norm;
+		GLint spec;
+		GLint envd;
+	} material_uniforms;
 };
 
 class Viewer
