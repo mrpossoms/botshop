@@ -7,28 +7,32 @@
 using namespace botshop;
 
 
-Framebuffer MaterialFactory::create_framebuffer(int width, int height)
+Framebuffer MaterialFactory::create_framebuffer(int width, int height, int flags)
 {
 	Framebuffer fbo;
 
 	glGenFramebuffers(1, &fbo.id);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo.id);
 
-	fbo.color = create_texture(width, height, GL_RGB, NULL);
+	if(flags & Framebuffer::color_flag)
+	{
+		fbo.color = create_texture(width, height, GL_RGB, NULL);
+		glFramebufferTexture2D(
+			GL_FRAMEBUFFER,
+			GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_2D,
+			fbo.color,
+			0
+		);
+	}
 
-	glFramebufferTexture2D(
-		GL_FRAMEBUFFER,
-		GL_COLOR_ATTACHMENT0,
-		GL_TEXTURE_2D,
-		fbo.color,
-		0
-	);
-
-	glGenRenderbuffers(1, &fbo.depth);
-	glBindRenderbuffer(GL_RENDERBUFFER, fbo.depth);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
-
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fbo.depth);
+	if(flags & Framebuffer::depth_flag)
+	{
+		glGenRenderbuffers(1, &fbo.depth);
+		glBindRenderbuffer(GL_RENDERBUFFER, fbo.depth);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fbo.depth);
+	}
 
 	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 

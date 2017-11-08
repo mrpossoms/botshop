@@ -18,12 +18,15 @@ struct Framebuffer {
 	GLuint color;
 	GLuint depth;
 	GLuint id;
+
+	static const int color_flag = 1;
+	static const int depth_flag = 2;
 };
 
 class MaterialFactory
 {
 public:
-	static Framebuffer create_framebuffer(int width, int height);
+	static Framebuffer create_framebuffer(int width, int height, int flags);
 	static GLuint create_texture(int width, int height, GLenum format, void* data);
 	static GLuint load_texture(std::string path);
 	static Material* get_material(const std::string path);

@@ -8,55 +8,46 @@
 
 using namespace botshop;
 
-struct EnvironmentMap {
-	Framebuffer framebuffers[6];
-	GLuint map;
 
-	EnvironmentMap(int res)
+EnvironmentMap::EnvironmentMap(int res)
+{
+
+	GLenum sides[] = {
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
+		GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+		GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+		GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+	};
+
+	glGenTextures(1, &map);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, map);
+
+	for(int i = 6; i--;)
 	{
-
-		GLenum sides[] = {
-			GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
-			GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
-			GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
-			GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
-			GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
-			GL_TEXTURE_CUBE_MAP_POSITIVE_X,
-		};
-
-		glGenTextures(1, &map);
-
-		for(int i = 6; i--;)
-		{
-			framebuffers[i] = MaterialFactory::create_framebuffer(res, res);
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, map);
-			glTexImage2D(sides[i], 0, GL_RGB, res, res, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-		}
-
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage2D(sides[i], 0, GL_RGB, res, res, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	}
 
-	void render_to(GLenum face)
-	{
-		int i = 6;
-		GLenum sides[] = {
-			GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
-			GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
-			GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
-			GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
-			GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
-			GL_TEXTURE_CUBE_MAP_POSITIVE_X,
-		};
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-		for(; face == sides[i] && i--;)
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffers[i].id);
-	}
-};
+	framebuffer = MaterialFactory::create_framebuffer(res, res, Framebuffer::depth_flag);
+}
+//------------------------------------------------------------------------------
+
+void EnvironmentMap::render_to(GLenum face)
+{
+	glBindTexture(GL_TEXTURE_CUBE_MAP, map);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, face, map, 0);
+	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+}
+//------------------------------------------------------------------------------
 
 static GLFWwindow* init_glfw()
 {
@@ -94,6 +85,7 @@ static GLFWwindow* init_glfw()
 
 	return win;
 }
+//------------------------------------------------------------------------------
 
 static GLint load_shader(const char* path, GLenum type)
 {
@@ -156,7 +148,7 @@ static GLint load_shader(const char* path, GLenum type)
 
 	return shader;
 }
-
+//------------------------------------------------------------------------------
 
 static GLint program(GLint vertex, GLint frag, const char** attributes)
 {
@@ -206,6 +198,7 @@ static GLint program(GLint vertex, GLint frag, const char** attributes)
 
 	return prog;
 }
+//------------------------------------------------------------------------------
 
 static double lx, ly;
 static void free_fly(GLFWwindow* win, Camera* cam)
@@ -282,7 +275,7 @@ static void free_fly(GLFWwindow* win, Camera* cam)
 
 	lx = x; ly = y;
 }
-
+//------------------------------------------------------------------------------
 
 RendererGL::RendererGL(std::string data_path)
 {
@@ -302,6 +295,8 @@ RendererGL::RendererGL(std::string data_path)
 
 	Material* brick_material = MaterialFactory::get_material("data/brick");
 	GLuint BRDF_LUT = MaterialFactory::load_texture("data/brdfLUT.png");
+
+	env = new EnvironmentMap(256);
 
 	glUseProgram(shader_prog);
 
@@ -338,6 +333,79 @@ RendererGL::RendererGL(std::string data_path)
 	assert(gl_get_error());
 
 }
+//------------------------------------------------------------------------------
+
+void RendererGL::draw_scene(Scene* scene)
+{
+	scene->draw(&draw_params);
+
+	for(auto drawable : scene->drawables())
+	{
+		drawable->draw(&draw_params);
+	}
+}
+//------------------------------------------------------------------------------
+
+void RendererGL::draw_to(EnvironmentMap* env, Scene* scene, Vec3 at_location)
+{
+	static mat4x4 cube_views[6];
+	static mat4x4 cube_proj;
+	static bool setup;
+
+	struct basis {
+		Vec3 up, forward;
+	};
+
+	if(!setup)
+	{
+
+		basis bases[] = {
+			{  VEC3_LEFT, VEC3_DOWN },
+			{ VEC3_RIGHT, VEC3_UP },
+			{    VEC3_UP, VEC3_FORWARD },
+			{    VEC3_UP, VEC3_BACK },
+			{    VEC3_UP, VEC3_RIGHT },
+			{    VEC3_UP, VEC3_LEFT },
+		};
+		mat4x4_perspective(cube_proj, M_PI / 2, 1, 0.01, 1000);
+
+		for(int i = 6; i--;)
+		{
+			mat4x4_look_at(
+				cube_views[i],
+				bases[i].forward.v,
+				at_location.v,
+				bases[i].up.v
+			);
+		}
+
+		setup = true;
+	}
+
+	GLenum sides[] = {
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
+		GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+		GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+		GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+	};
+
+	GLint v_uniform     = glGetUniformLocation(shader_prog, "view_matrix");
+	GLint p_uniform     = glGetUniformLocation(shader_prog, "proj_matrix");
+
+	glUniformMatrix4fv(p_uniform, 1, GL_FALSE, (GLfloat*)cube_proj);
+
+	for(int i = 6; i--;)
+	{
+		env->render_to(sides[i]);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glUniformMatrix4fv(v_uniform, 1, GL_FALSE, (GLfloat*)cube_views[i]);
+		draw_scene(scene);
+	}
+}
+//------------------------------------------------------------------------------
 
 void RendererGL::draw(Viewer* viewer, Scene* scene)
 {
@@ -345,18 +413,17 @@ void RendererGL::draw(Viewer* viewer, Scene* scene)
 	GLint v_uniform     = glGetUniformLocation(shader_prog, "view_matrix");
 	GLint p_uniform     = glGetUniformLocation(shader_prog, "proj_matrix");
 
+	draw_to(env, scene, VEC3_UP);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	viewer->projection(proj)->view(view);
 	glUniformMatrix4fv(v_uniform, 1, GL_FALSE, (GLfloat*)view);
 	glUniformMatrix4fv(p_uniform, 1, GL_FALSE, (GLfloat*)proj);
 
-	scene->draw(&draw_params);
-
-	for(auto drawable : scene->drawables())
-	{
-		drawable->draw(&draw_params);
-	}
+	draw_scene(scene);
 
 	glfwPollEvents();
 	glfwSwapBuffers(win);
