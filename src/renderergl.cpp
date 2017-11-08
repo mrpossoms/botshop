@@ -8,6 +8,56 @@
 
 using namespace botshop;
 
+struct EnvironmentMap {
+	Framebuffer framebuffers[6];
+	GLuint map;
+
+	EnvironmentMap(int res)
+	{
+
+		GLenum sides[] = {
+			GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
+			GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+			GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+			GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+			GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+			GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+		};
+
+		glGenTextures(1, &map);
+
+		for(int i = 6; i--;)
+		{
+			framebuffers[i] = MaterialFactory::create_framebuffer(res, res);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, map);
+			glTexImage2D(sides[i], 0, GL_RGB, res, res, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		}
+
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	}
+
+	void render_to(GLenum face)
+	{
+		int i = 6;
+		GLenum sides[] = {
+			GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
+			GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+			GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+			GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+			GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+			GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+		};
+
+		for(; face == sides[i] && i--;)
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffers[i].id);
+	}
+};
+
 static GLFWwindow* init_glfw()
 {
 	if (!glfwInit()){
@@ -39,7 +89,6 @@ static GLFWwindow* init_glfw()
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
-	// glEnable(GL_TEXTURE_2D);
 
 	assert(gl_get_error());
 

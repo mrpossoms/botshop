@@ -7,33 +7,32 @@
 using namespace botshop;
 
 
-GLuint MaterialFactory::create_framebuffer(int width, int height)
+Framebuffer MaterialFactory::create_framebuffer(int width, int height)
 {
-	GLuint framebuffer;
-	GLuint depth;
+	Framebuffer fbo;
 
-	glGenFramebuffers(1, &framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glGenFramebuffers(1, &fbo.id);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo.id);
 
-	GLuint color = create_texture(width, height, GL_RGB, NULL);
+	fbo.color = create_texture(width, height, GL_RGB, NULL);
 
 	glFramebufferTexture2D(
 		GL_FRAMEBUFFER,
 		GL_COLOR_ATTACHMENT0,
 		GL_TEXTURE_2D,
-		color,
+		fbo.color,
 		0
 	);
 
-	glGenRenderbuffers(1, &depth);
-	glBindRenderbuffer(GL_RENDERBUFFER, depth);
+	glGenRenderbuffers(1, &fbo.depth);
+	glBindRenderbuffer(GL_RENDERBUFFER, fbo.depth);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
 
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fbo.depth);
 
 	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 
-	return framebuffer;
+	return fbo;
 }
 //------------------------------------------------------------------------------
 

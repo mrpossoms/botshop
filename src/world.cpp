@@ -91,7 +91,7 @@ void World::step(float dt)
 }
 //------------------------------------------------------------------------------
 
-std::vector<Drawable*>& World::drawables()
+std::vector<botshop::Drawable*>& World::drawables()
 {
 	return drawable_set;
 }
