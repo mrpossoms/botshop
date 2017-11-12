@@ -325,7 +325,12 @@ RendererGL::RendererGL(std::string data_path)
 	Material* brick_material = MaterialFactory::get_material("data/brick");
 	GLuint BRDF_LUT = MaterialFactory::load_texture("data/brdfLUT.png");
 
-	env = new EnvironmentMap(256);
+	env = new EnvironmentMap(64);
+
+	for(int i = 10; i--;)
+	{
+		env_maps.push_back(new EnvironmentMap(64));
+	}
 
 	glUseProgram(pbr_shader->program);
 
@@ -369,7 +374,7 @@ void RendererGL::draw_scene(Scene* scene)
 }
 //------------------------------------------------------------------------------
 
-void RendererGL::draw_to(EnvironmentMap* env, Scene* scene, Vec3 at_location)
+void RendererGL::draw_to(EnvironmentMap* env, Scene* scene, Drawable* except, Vec3 at_location)
 {
 	static bool setup;
 
@@ -426,7 +431,20 @@ void RendererGL::draw_to(EnvironmentMap* env, Scene* scene, Vec3 at_location)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUniformMatrix4fv(draw_params.view_uniform, 1, GL_FALSE, (GLfloat*)cube_views[i]);
-		draw_scene(scene);
+
+		assert(gl_get_error());
+
+		scene->draw(&draw_params);
+
+		assert(gl_get_error());
+
+		for(auto drawable : scene->drawables())
+		{
+			if(drawable == except) continue;
+			drawable->draw(&draw_params);
+		}
+
+		assert(gl_get_error());
 	}
 
 	assert(gl_get_error());
@@ -439,16 +457,25 @@ void RendererGL::draw(Viewer* viewer, Scene* scene)
 
 	mat4x4 view, proj;
 
+
+
 	assert(gl_get_error());
 
 	draw_params = simple_shader->draw_params;
 	glUseProgram(simple_shader->program);
 
-	glClearColor(0.2, 0.4, 0.7, 1);
+	glClearColor(135 / 255.f, 206 / 255.f, 235 / 255.f, 1);
 
-	Vec3 up = VEC3_FORWARD;
-	up *= 1;
-	draw_to(env, scene, up);
+	int env_idx = 0;
+	for(auto drawable : scene->drawables())
+	{
+		Dynamic* body = dynamic_cast<Dynamic*>(drawable);
+		if(!body) continue;
+
+		Vec3 pos = body->position();
+		draw_to(env_maps[env_idx], scene, drawable, pos);
+		++env_idx;
+	}
 
 	// Set the screen's framebuffer as the render target
 	// get ready to use the PBR shader
@@ -462,13 +489,7 @@ void RendererGL::draw(Viewer* viewer, Scene* scene)
 		glUseProgram(simple_shader->program);
 	}
 
-	// Bind the cubemap rendered earlier to use for IBL
-	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, env->map);
-	glUniform1i(draw_params.material_uniforms.envd, 4);
-
 	// Make the sky black, and clear the screen
-	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glViewport(0, 0, width * 2, height * 2);
@@ -496,7 +517,27 @@ void RendererGL::draw(Viewer* viewer, Scene* scene)
 	glUniformMatrix4fv(draw_params.view_uniform, 1, GL_FALSE, (GLfloat*)view);
 	glUniformMatrix4fv(draw_params.proj_uniform, 1, GL_FALSE, (GLfloat*)proj);
 
-	draw_scene(scene);
+	assert(gl_get_error());
+
+	env_idx = 0;
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, env_maps[env_idx]->map);
+	glUniform1i(draw_params.material_uniforms.envd, 4);
+
+	scene->draw(&draw_params);
+
+	assert(gl_get_error());
+
+	for(auto drawable : scene->drawables())
+	{
+		// Bind the cubemap rendered earlier to use for IBL
+		glBindTexture(GL_TEXTURE_CUBE_MAP, env_maps[env_idx++]->map);
+		glUniform1i(draw_params.material_uniforms.envd, 4);
+
+		drawable->draw(&draw_params);
+	}
+
+	assert(gl_get_error());
 
 	glfwPollEvents();
 	glfwSwapBuffers(win);

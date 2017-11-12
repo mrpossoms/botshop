@@ -2,7 +2,7 @@
 #define COOK_BLINN
 #define COOK
 #define USE_ALBEDO_MAP
-// #define USE_NORMAL_MAP
+#define USE_NORMAL_MAP
 // #define USE_ROUGHNESS_MAP
 
 in vec2 v_texcoord; // texture coords
@@ -197,8 +197,8 @@ void main() {
     //    11 magic number is total MIP levels in cubemap, this is simplest way for picking
     //    MIP level from roughness value (but it's not correct, however it looks fine)
     vec3 refl = tnrm * reflect(-V, N);
-    // vec3 envspec = textureLod(envd, refl, max(roughness * 11.0, textureQueryLod(envd, refl).y)).xyz;
-    vec3 envspec = texture(envd, nn).xyz;
+    vec3 envspec = textureLod(envd, refl, max(roughness * 11.0, textureQueryLod(envd, refl).y)).xyz;
+    // vec3 envspec = texture(envd, nn).xyz;
 
 
     // compute material reflectance
@@ -256,6 +256,6 @@ void main() {
     vec3 result = diffuse_light * mix(base, vec3(0.0), metallic) + reflected_light;
 
 
-    color = vec4(texture(envd, N).xyz, 1.0);// + vec4(texture(tex, texcoord)) * 0.1;
+    color = vec4(texture(envd,v_normal).xyz, 1.0);// + vec4(texture(tex, texcoord)) * 0.1;
     // color = vec4(texture(tex, texcoord));
 }

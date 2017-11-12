@@ -35,7 +35,9 @@ public:
 	int width, height;
 private:
 	void draw_scene(Scene* scene);
-	void draw_to(EnvironmentMap* env, Scene* scene, Vec3 at_location);
+	void draw_to(EnvironmentMap* env, Scene* scene, Drawable* except, Vec3 at_location);
+
+	std::vector<EnvironmentMap*> env_maps;
 
 	Shader* pbr_shader;
 	Shader* simple_shader;
