@@ -11,6 +11,7 @@ using namespace botshop;
 
 EnvironmentMap::EnvironmentMap(int res)
 {
+	size = res;
 
 	GLenum sides[] = {
 		GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
@@ -187,7 +188,7 @@ Shader::Shader(GLint vertex, GLint frag)
 }
 
 //------------------------------------------------------------------------------
-static GLFWwindow* init_glfw()
+static GLFWwindow* init_glfw(int width, int height)
 {
 	if (!glfwInit()){
 		fprintf(stderr, "glfwInit() failed\n");
@@ -200,7 +201,7 @@ static GLFWwindow* init_glfw()
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* win = glfwCreateWindow(640, 480, "botshop", NULL, NULL);
+	GLFWwindow* win = glfwCreateWindow(width, height, "botshop", NULL, NULL);
 
 	if (!win){
 		glfwTerminate();
@@ -304,7 +305,10 @@ static void free_fly(GLFWwindow* win, Camera* cam)
 
 RendererGL::RendererGL(std::string data_path)
 {
-	win = init_glfw();
+	width = 640;
+	height = 480;
+
+	win = init_glfw(width, height);
 
 	assert(gl_get_error());
 
@@ -367,8 +371,6 @@ void RendererGL::draw_scene(Scene* scene)
 
 void RendererGL::draw_to(EnvironmentMap* env, Scene* scene, Vec3 at_location)
 {
-	static mat4x4 cube_views[6];
-	static mat4x4 cube_proj;
 	static bool setup;
 
 	struct basis {
@@ -379,25 +381,18 @@ void RendererGL::draw_to(EnvironmentMap* env, Scene* scene, Vec3 at_location)
 	{
 
 		basis bases[] = {
-			{    VEC3_UP, VEC3_BACK },
-			{    VEC3_UP, VEC3_FORWARD },
-
-
-			{ VEC3_FORWARD, VEC3_UP },
-			{  VEC3_FORWARD, VEC3_DOWN },
-
-
-			{    VEC3_FORWARD, VEC3_RIGHT },
-			{    VEC3_FORWARD, VEC3_LEFT },
-
-
+			{ VEC3_UP,      VEC3_BACK    },
+			{ VEC3_UP,      VEC3_FORWARD },
+			{ VEC3_FORWARD, VEC3_UP      },
+			{ VEC3_BACK,    VEC3_DOWN    },
+			{ VEC3_DOWN,    VEC3_RIGHT   },
+			{ VEC3_DOWN,    VEC3_LEFT    },
 		};
 		mat4x4_perspective(cube_proj, M_PI / 2, 1, 0.01, 1000);
 
 		for(int i = 6; i--;)
 		{
-			Vec3 eye = at_location;
-			eye += bases[i].forward;
+			Vec3 eye = at_location + bases[i].forward;
 
 			mat4x4_look_at(
 				cube_views[i],
@@ -420,6 +415,7 @@ void RendererGL::draw_to(EnvironmentMap* env, Scene* scene, Vec3 at_location)
 	};
 
 	glUniformMatrix4fv(draw_params.proj_uniform, 1, GL_FALSE, (GLfloat*)cube_proj);
+	glViewport(0, 0, env->size, env->size);
 
 	assert(gl_get_error());
 
@@ -451,21 +447,52 @@ void RendererGL::draw(Viewer* viewer, Scene* scene)
 	glClearColor(0.2, 0.4, 0.7, 1);
 
 	Vec3 up = VEC3_FORWARD;
-	up *= 4;
+	up *= 1;
 	draw_to(env, scene, up);
 
+	// Set the screen's framebuffer as the render target
+	// get ready to use the PBR shader
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	draw_params = pbr_shader->draw_params;
 	glUseProgram(pbr_shader->program);
 
+	if(glfwGetKey(win, GLFW_KEY_F))
+	{
+		draw_params = simple_shader->draw_params;
+		glUseProgram(simple_shader->program);
+	}
+
+	// Bind the cubemap rendered earlier to use for IBL
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, env->map);
 	glUniform1i(draw_params.material_uniforms.envd, 4);
 
+	// Make the sky black, and clear the screen
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	glViewport(0, 0, width * 2, height * 2);
+
+	int side_view_keys[] = {
+		GLFW_KEY_1,
+		GLFW_KEY_2,
+		GLFW_KEY_3,
+		GLFW_KEY_4,
+		GLFW_KEY_5,
+		GLFW_KEY_6,
+	};
+
 	viewer->projection(proj)->view(view);
+
+	for(int i = 6; i--;)
+	{
+		if(glfwGetKey(win, side_view_keys[i]))
+		{
+			mat4x4_dup(view, cube_views[i]);
+			mat4x4_dup(proj, cube_proj);
+		}
+	}
+
 	glUniformMatrix4fv(draw_params.view_uniform, 1, GL_FALSE, (GLfloat*)view);
 	glUniformMatrix4fv(draw_params.proj_uniform, 1, GL_FALSE, (GLfloat*)proj);
 

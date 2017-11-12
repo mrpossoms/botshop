@@ -255,6 +255,7 @@ void main() {
     // final result
     vec3 result = diffuse_light * mix(base, vec3(0.0), metallic) + reflected_light;
 
-    color = vec4(envspec, 1.0);// + vec4(texture(tex, texcoord)) * 0.1;
+
+    color = vec4(texture(envd, N).xyz, 1.0);// + vec4(texture(tex, texcoord)) * 0.1;
     // color = vec4(texture(tex, texcoord));
 }

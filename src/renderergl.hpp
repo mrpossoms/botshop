@@ -13,6 +13,8 @@ struct EnvironmentMap {
 
 	EnvironmentMap(int res);
 	void render_to(GLenum face);
+
+	int size;
 };
 
 struct Shader {
@@ -30,6 +32,7 @@ public:
 	virtual void draw(Viewer* viewer, Scene* scene);
 
 	GLFWwindow* win;
+	int width, height;
 private:
 	void draw_scene(Scene* scene);
 	void draw_to(EnvironmentMap* env, Scene* scene, Vec3 at_location);
@@ -38,6 +41,9 @@ private:
 	Shader* simple_shader;
 	DrawParams draw_params;
 	EnvironmentMap* env;
+
+	mat4x4 cube_views[6];
+	mat4x4 cube_proj;
 };
 
 }

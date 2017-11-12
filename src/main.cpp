@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 	botshop::Form wheel3(world, wheel_model);
 
 
-	botshop::Camera cam(world, M_PI / 2, 160, 120);
+	botshop::Camera cam(world, M_PI / 4, 160, 120);
 
 	// GLuint framebuffer = botshop::MaterialFactory::create_framebuffer(256, 256);
 	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
