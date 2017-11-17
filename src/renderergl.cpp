@@ -492,7 +492,9 @@ void RendererGL::draw(Viewer* viewer, Scene* scene)
 	// Make the sky black, and clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glViewport(0, 0, width * 2, height * 2);
+	int fb_width, fb_height;
+	glfwGetFramebufferSize(win, &fb_width, &fb_height);
+	glViewport(0, 0, fb_width, fb_height);
 
 	int side_view_keys[] = {
 		GLFW_KEY_1,

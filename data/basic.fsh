@@ -11,7 +11,11 @@ uniform sampler2D tex;     // base texture (albedo)
 
 void main()
 {
+    vec3 light_dir = normalize(vec3(0.0, 1.0, 1.0));
     vec3 rgb = texture(tex, v_texcoord).xyz;
+
+    float shade = (dot(light_dir, v_normal) + 1.0) / 2.0;
+    float l = shade * 0.9 + 0.1;
     // color = vec4(vec3(v_texcoord, 1.0), 1.0);
-    color = vec4(rgb, 1.0);
+    color = vec4(rgb * l, 1.0);
 }
