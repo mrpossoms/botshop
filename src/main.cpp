@@ -28,7 +28,8 @@ int main(int argc, char* argv[])
 
 	botshop::Model* car_model = botshop::ModelFactory::get_model("data/car_body.obj");
 	botshop::Model* wheel_model = botshop::ModelFactory::get_model("data/wheel.obj");
-	botshop::Model* box_model = botshop::ModelFactory::get_model("data/sphereized_cube.obj");
+	// botshop::Model* box_model = botshop::ModelFactory::get_model("data/sphereized_cube.obj");
+	botshop::Model* box_model = botshop::ModelFactory::get_model("data/cube.obj");
 
 	botshop::Form car_body(world, car_model);
 	botshop::Form box0(world, box_model);

@@ -319,7 +319,7 @@ RendererGL::RendererGL(std::string data_path)
 
 	pbr_shader = new Shader(
 		load_shader("data/basic.vsh", GL_VERTEX_SHADER),
-		load_shader("data/pbr.fsh", GL_FRAGMENT_SHADER)
+		load_shader("data/global.fsh", GL_FRAGMENT_SHADER)
 	);
 
 	Material* brick_material = MaterialFactory::get_material("data/brick");

@@ -28,5 +28,5 @@ void main()
 	vec4 view_space = view_matrix * world_space;
 	gl_Position = proj_matrix * view_space;
 
-	v_pos = view_space.xyz;
+	v_pos = normalize(normal_matrix * position); //view_space.xyz;
 }

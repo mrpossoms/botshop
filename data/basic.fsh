@@ -9,9 +9,10 @@ out vec4 color;
 
 uniform sampler2D tex;     // base texture (albedo)
 
+const vec3 light_dir = vec3(0.0, 1.0, 1.0);
+
 void main()
 {
-    vec3 light_dir = normalize(vec3(0.0, 1.0, 1.0));
     vec3 rgb = texture(tex, v_texcoord).xyz;
 
     float shade = (dot(light_dir, v_normal) + 1.0) / 2.0;
