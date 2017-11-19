@@ -15,6 +15,7 @@ uniform mat4 proj_matrix;
 uniform mat3 normal_matrix;
 uniform mat4 world_matrix;
 
+
 void main()
 {
 	vec3 binormal = cross(normal, tangent);

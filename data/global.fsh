@@ -31,7 +31,7 @@ uniform samplerCube envd;  // prefiltered env cubemap
 
 #define PI 3.1415926
 
-const vec3 light_dir = vec3(0.0, 1.0, 1.0);
+const vec3 light_dir = normalize(vec3(0.0, 1.0, 1.0));
 
 vec3 kernel[] = vec3[](
 	vec3(0.779529, 0.623008, -0.064770),
