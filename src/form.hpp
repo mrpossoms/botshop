@@ -1,8 +1,9 @@
 #pragma once
 
 #include "core.h"
-#include "body.hpp"
 #include "geo.hpp"
+#include "body.hpp"
+
 
 namespace botshop
 {

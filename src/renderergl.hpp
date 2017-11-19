@@ -6,6 +6,17 @@
 namespace botshop
 {
 
+class Sky : public Drawable {
+public:
+    Sky();
+    ~Sky();
+
+    void draw(DrawParams* params);
+private:
+    GLuint vbo;
+    int vertices;
+};
+
 
 struct EnvironmentMap {
 	Framebuffer framebuffer;
@@ -41,8 +52,9 @@ private:
 
 	Shader* pbr_shader;
 	Shader* simple_shader;
+	Shader* sky_shader;
 	DrawParams draw_params;
-	EnvironmentMap* env;
+	Sky* sky;
 
 	mat4x4 cube_views[6];
 	mat4x4 cube_proj;

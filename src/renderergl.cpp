@@ -9,6 +9,74 @@
 using namespace botshop;
 
 
+Sky::Sky()
+{
+    glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    Model* mesh = ModelFactory::get_model("data/sphereized_cube.obj");
+    vertices = mesh->vert_count();
+
+	glBufferData(
+		GL_ARRAY_BUFFER,
+		mesh->vert_count() * sizeof(Vertex),
+		mesh->verts(),
+		GL_STATIC_DRAW
+	);
+}
+//------------------------------------------------------------------------------
+
+Sky::~Sky()
+{
+    glDeleteBuffers(1, &vbo);
+}
+//------------------------------------------------------------------------------
+
+void Sky::draw(DrawParams* params)
+{
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
+
+    glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+	for(int i = 4; i--;)
+	{
+		glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(vec3) * i));
+	}
+
+
+	assert(gl_get_error());
+
+	mat4x4 world;
+	mat3x3 rot;
+	mat4x4_identity(world);
+	mat3x3_identity(rot);
+
+	glUniformMatrix4fv(params->world_uniform, 1, GL_FALSE, (GLfloat*)world);
+	glUniformMatrix3fv(params->norm_uniform,  1, GL_FALSE, (GLfloat*)rot);
+
+	glDrawArrays(GL_TRIANGLES, 0, vertices);
+
+	assert(gl_get_error());
+
+	for(int i = 4; i--;)
+	{
+		glDisableVertexAttribArray(i);
+	}
+
+
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+
+	assert(gl_get_error());
+}
+//------------------------------------------------------------------------------
+
 EnvironmentMap::EnvironmentMap(int res)
 {
 	size = res;
@@ -322,10 +390,15 @@ RendererGL::RendererGL(std::string data_path)
 		load_shader("data/global.fsh", GL_FRAGMENT_SHADER)
 	);
 
+	sky_shader = new Shader(
+		load_shader("data/sky.vsh", GL_VERTEX_SHADER),
+		load_shader("data/sky.fsh", GL_FRAGMENT_SHADER)
+	);
+
+	sky = new Sky();
+
 	Material* brick_material = MaterialFactory::get_material("data/brick");
 	GLuint BRDF_LUT = MaterialFactory::load_texture("data/brdfLUT.png");
-
-	env = new EnvironmentMap(64);
 
 	for(int i = 10; i--;)
 	{
@@ -419,7 +492,6 @@ void RendererGL::draw_to(EnvironmentMap* env, Scene* scene, Drawable* except, Ve
 		GL_TEXTURE_CUBE_MAP_POSITIVE_X,
 	};
 
-	glUniformMatrix4fv(draw_params.proj_uniform, 1, GL_FALSE, (GLfloat*)cube_proj);
 	glViewport(0, 0, env->size, env->size);
 
 	assert(gl_get_error());
@@ -430,7 +502,16 @@ void RendererGL::draw_to(EnvironmentMap* env, Scene* scene, Drawable* except, Ve
 		env->render_to(sides[i]);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		draw_params = sky_shader->draw_params;
+		glUseProgram(sky_shader->program);
 		glUniformMatrix4fv(draw_params.view_uniform, 1, GL_FALSE, (GLfloat*)cube_views[i]);
+		glUniformMatrix4fv(draw_params.proj_uniform, 1, GL_FALSE, (GLfloat*)cube_proj);
+		sky->draw(&draw_params);
+
+		draw_params = simple_shader->draw_params;
+		glUseProgram(simple_shader->program);
+		glUniformMatrix4fv(draw_params.view_uniform, 1, GL_FALSE, (GLfloat*)cube_views[i]);
+		glUniformMatrix4fv(draw_params.proj_uniform, 1, GL_FALSE, (GLfloat*)cube_proj);
 
 		assert(gl_get_error());
 
@@ -457,14 +538,9 @@ void RendererGL::draw(Viewer* viewer, Scene* scene)
 
 	mat4x4 view, proj;
 
-
+	glClearColor(135 / 255.f, 206 / 255.f, 235 / 255.f, 1);
 
 	assert(gl_get_error());
-
-	draw_params = simple_shader->draw_params;
-	glUseProgram(simple_shader->program);
-
-	glClearColor(135 / 255.f, 206 / 255.f, 235 / 255.f, 1);
 
 	int env_idx = 0;
 	for(auto drawable : scene->drawables())
@@ -478,8 +554,27 @@ void RendererGL::draw(Viewer* viewer, Scene* scene)
 	}
 
 	// Set the screen's framebuffer as the render target
-	// get ready to use the PBR shader
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// reset the viewport
+	// Make the sky black, and clear the screen
+	int fb_width, fb_height;
+	glfwGetFramebufferSize(win, &fb_width, &fb_height);
+	glViewport(0, 0, fb_width, fb_height);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	viewer->projection(proj)->view(view);
+
+	// draw_params = sky_shader->draw_params;
+	draw_params = sky_shader->draw_params;
+	glUseProgram(sky_shader->program);
+	glUniformMatrix4fv(draw_params.view_uniform, 1, GL_FALSE, (GLfloat*)view);
+	glUniformMatrix4fv(draw_params.proj_uniform, 1, GL_FALSE, (GLfloat*)proj);
+
+	sky->draw(&sky_shader->draw_params);
+	assert(gl_get_error());
+
+	// get ready to use the PBR shader
 	draw_params = pbr_shader->draw_params;
 	glUseProgram(pbr_shader->program);
 
@@ -489,13 +584,6 @@ void RendererGL::draw(Viewer* viewer, Scene* scene)
 		glUseProgram(simple_shader->program);
 	}
 
-	// Make the sky black, and clear the screen
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	int fb_width, fb_height;
-	glfwGetFramebufferSize(win, &fb_width, &fb_height);
-	glViewport(0, 0, fb_width, fb_height);
-
 	int side_view_keys[] = {
 		GLFW_KEY_1,
 		GLFW_KEY_2,
@@ -504,8 +592,6 @@ void RendererGL::draw(Viewer* viewer, Scene* scene)
 		GLFW_KEY_5,
 		GLFW_KEY_6,
 	};
-
-	viewer->projection(proj)->view(view);
 
 	for(int i = 6; i--;)
 	{
