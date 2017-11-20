@@ -71,7 +71,7 @@ vec3 kernel[] = vec3[](
 void main() {
     vec3 nn = normalize(v_normal + v_pos);
 
-    vec3 nb = normalize(v_binormal);
+    vec3 nb = normalize(cross(nn, v_binormal));
     mat3x3 tbn = mat3x3(nb, cross(nn, nb), nn);
 
     vec2 texcoord = v_texcoord;
@@ -84,12 +84,12 @@ void main() {
 
 	vec3 ibl = vec3(0.0);
 
-	for(int i = 0; i < 32; ++i)
+	for(int i = 0; i < 16; ++i)
 	{
 		ibl += texture(envd, N + kernel[i] * 0.5).xyz;
 	}
 
-	ibl /= 32.0;
+	ibl /= 16.0;
 
 	vec3 base_color = texture(tex, texcoord).xyz;
 	vec3 result = base_color * ibl * 0.9 + 0.1;
