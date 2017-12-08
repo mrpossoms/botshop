@@ -50,9 +50,13 @@ private:
 
 	std::vector<EnvironmentMap*> env_maps;
 
+  mat4x4 light_view, light_proj;
+	Framebuffer shadow_map;
+
 	Shader* pbr_shader;
 	Shader* simple_shader;
 	Shader* sky_shader;
+	Shader* vsm_storage_shader;
 	DrawParams draw_params;
 	Sky* sky;
 

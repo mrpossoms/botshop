@@ -9,6 +9,7 @@ out vec2 v_texcoord; // texture coords
 out vec3 v_normal;   // normal
 out vec3 v_binormal; // binormal (for TBN basis calc)
 out vec3 v_pos;      // pixel view space position
+out vec4 v_screen_space;
 
 uniform mat4 view_matrix;
 uniform mat4 proj_matrix;
@@ -26,7 +27,7 @@ void main()
 
 	vec4 world_space = world_matrix * vec4(position, 1.0);
 	vec4 view_space = view_matrix * world_space;
-	gl_Position = proj_matrix * view_space;
+	gl_Position = v_screen_space = proj_matrix * view_space;
 
 	v_pos = normalize(normal_matrix * position); //view_space.xyz;
 }

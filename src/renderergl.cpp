@@ -34,10 +34,9 @@ Sky::~Sky()
 
 void Sky::draw(DrawParams* params)
 {
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_DEPTH_TEST);
-
-    glEnableVertexAttribArray(0);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+    	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
 	glEnableVertexAttribArray(3);
@@ -69,9 +68,8 @@ void Sky::draw(DrawParams* params)
 		glDisableVertexAttribArray(i);
 	}
 
-
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
 
 	assert(gl_get_error());
 }
@@ -110,7 +108,7 @@ EnvironmentMap::EnvironmentMap(int res)
 
 	assert(gl_get_error());
 
-	framebuffer = MaterialFactory::create_framebuffer(res, res, Framebuffer::depth_flag);
+	framebuffer = MaterialFactory::create_framebuffer(res, res, Framebuffer::depth_flag | Framebuffer::color_flag);
 }
 //------------------------------------------------------------------------------
 
@@ -278,7 +276,7 @@ static GLFWwindow* init_glfw(int width, int height)
 	}
 
 	glfwMakeContextCurrent(win);
-	glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+	glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	GLuint vao;
 	glGenVertexArrays(1, &vao);
@@ -395,6 +393,11 @@ RendererGL::RendererGL(std::string data_path)
 		load_shader("data/sky.fsh", GL_FRAGMENT_SHADER)
 	);
 
+	vsm_storage_shader = new Shader(
+		load_shader("data/basic.vsh", GL_VERTEX_SHADER),
+		load_shader("data/vsm_storage.fsh", GL_FRAGMENT_SHADER)
+	);
+
 	sky = new Sky();
 
 	Material* brick_material = MaterialFactory::get_material("data/brick");
@@ -405,8 +408,13 @@ RendererGL::RendererGL(std::string data_path)
 		env_maps.push_back(new EnvironmentMap(64));
 	}
 
+	shadow_map = MaterialFactory::create_framebuffer(512, 512, Framebuffer::depth_flag);
+
 	glUseProgram(pbr_shader->program);
 
+  Vec3 light_pos(10, 10, 10);
+  mat4x4_look_at(light_view, light_pos.v, VEC3_ZERO.v, VEC3_UP.v);
+  mat4x4_perspective(light_proj, M_PI / 2, 1, 1, 100);
 	mat4x4 proj, view;
 
 	GLint material_uniform = glGetUniformLocation(pbr_shader->program, "material");
@@ -552,6 +560,19 @@ void RendererGL::draw(Viewer* viewer, Scene* scene)
 		draw_to(env_maps[env_idx], scene, drawable, pos);
 		++env_idx;
 	}
+
+  // render the shadow_map
+  glBindFramebuffer(GL_FRAMEBUFFER, shadow_map.id);
+  draw_params = sky_shader->draw_params;
+	glUseProgram(sky_shader->program);
+  glViewport(0, 0, 512, 512);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  glUniformMatrix4fv(draw_params.view_uniform, 1, GL_FALSE, (GLfloat*)light_view);
+	glUniformMatrix4fv(draw_params.proj_uniform, 1, GL_FALSE, (GLfloat*)light_proj);
+
+	assert(gl_get_error());
+	scene->draw(&draw_params);
 
 	// Set the screen's framebuffer as the render target
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

@@ -9,6 +9,8 @@ in vec2 v_texcoord; // texture coords
 in vec3 v_normal;   // normal
 in vec3 v_binormal; // binormal (for TBN basis calc)
 in vec3 v_pos;      // pixel view space position
+in vec4 v_screen_space;      // pixel view space position
+
 
 out vec4 color;
 
@@ -67,6 +69,26 @@ vec3 kernel[] = vec3[](
 	vec3(0.670036, -0.093307, 0.736441),
 	vec3(-0.657081, 0.716457, -0.234379)
 );
+
+float chebyshevUpperBound(vec4 ShadowCoordPostW, float distance)
+{
+	// We retrive the two moments previously stored (depth and depth*depth)
+	vec2 moments = texture2D(ShadowMap,ShadowCoordPostW.xy).rg;
+
+	// Surface is fully lit. as the current fragment is before the light occluder
+	if (distance <= moments.x)
+		return 1.0 ;
+
+	// The fragment is either in shadow or penumbra. We now use chebyshev's upperBound to check
+	// How likely this pixel is to be lit (p_max)
+	float variance = moments.y - (moments.x*moments.x);
+	variance = max(variance,0.00002);
+
+	float d = distance - moments.x;
+	float p_max = variance / (variance + d*d);
+
+	return p_max;
+}
 
 void main() {
     vec3 nn = normalize(v_normal + v_pos);
