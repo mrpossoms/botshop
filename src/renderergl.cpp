@@ -540,6 +540,12 @@ void RendererGL::draw_to(EnvironmentMap* env, Scene* scene, Drawable* except, Ve
 }
 //------------------------------------------------------------------------------
 
+bool RendererGL::should_close()
+{
+	return glfwWindowShouldClose(win) || glfwGetKey(win, GLFW_KEY_ESCAPE);
+}
+//------------------------------------------------------------------------------
+
 void RendererGL::draw(Viewer* viewer, Scene* scene)
 {
 	assert(gl_get_error());

@@ -51,12 +51,20 @@ Body* Body::attach(Body* body)
 }
 //------------------------------------------------------------------------------
 
-Body* Body::attach(const Joint* joint)
+Body* Body::attach(Joint* joint)
 {
 	dJointAttach(joint->ode_joint, ode_body, joint->body->ode_body);
 	welded_children.push_back(joint->body);
 
+	joint->on_attached(this);
+
 	return this;
+}
+//------------------------------------------------------------------------------
+
+void Body::on_attached(const Attachable* parent)
+{
+
 }
 //------------------------------------------------------------------------------
 
@@ -209,7 +217,7 @@ Body* Body::mass(float m)
 
 //------------------------------------------------------------------------------
 
-Body* Body::operator+(const Joint* joint)
+Body* Body::operator+(Joint* joint)
 {
 	return attach(joint);
 }
@@ -250,13 +258,26 @@ Joint* Joint::wheel(Body& body, Vec3 steer_axis, Vec3 axle_axis)
 	Joint* wheel = new Joint(body, dJointCreateHinge2(body.world, 0));
 	wheel->at(body.position());
 
-	dJointSetHinge2Axis1(wheel->ode_joint, steer_axis.x, steer_axis.y, steer_axis.z);
-	dJointSetHinge2Axis2(wheel->ode_joint, axle_axis.x,  axle_axis.y,  axle_axis.z);
-	dJointSetHinge2Param(wheel->ode_joint, dParamSuspensionERP, 0.4);
-	dJointSetHinge2Param(wheel->ode_joint, dParamSuspensionCFM, 0.8);
+	wheel->steer_axis = steer_axis;
+	wheel->axle_axis = axle_axis;
 
-	dJointSetHinge2Param(wheel->ode_joint, dParamLoStop, 0);
-    dJointSetHinge2Param(wheel->ode_joint, dParamHiStop, 0);
+	// dJointSetHinge2Axis1(wheel->ode_joint, steer_axis.x, steer_axis.y, steer_axis.z);
+	// dJointSetHinge2Axis2(wheel->ode_joint, axle_axis.x,  axle_axis.y,  axle_axis.z);
+	// TODO: needs attachment first!
 
 	return wheel;
+}
+
+void Joint::on_attached(const Attachable* parent)
+{
+	dJointSetHinge2Anchor(ode_joint, body->position().x, body->position().y, body->position().z);
+
+    dJointSetHinge2Axes (ode_joint, steer_axis.v, axle_axis.v);
+
+	dJointSetHinge2Param(ode_joint, dParamSuspensionERP, 0.4);
+	dJointSetHinge2Param(ode_joint, dParamSuspensionCFM, 0.8);
+
+	dJointSetHinge2Param(ode_joint, dParamLoStop, 0);
+	dJointSetHinge2Param(ode_joint, dParamHiStop, 0);
+
 }

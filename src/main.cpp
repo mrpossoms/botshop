@@ -51,16 +51,20 @@ int main(int argc, char* argv[])
 
 	// car_body.is_a_mesh(car_model)->position(0, 0, 9);
 	car_body.is_a_box(cd.x, cd.y, cd.z)->position(0, 0, 1);
-	wheel0.is_a_sphere(0.082)->position(0.15, 0.15, 1);
-	wheel1.is_a_sphere(0.082)->position(-0.15, 0.15, 1);
-	wheel2.is_a_sphere(0.082)->position(-0.15, -0.15, 1);
-	wheel3.is_a_sphere(0.082)->position(0.15, -0.15, 1);
-	// car_body + botshop::Joint::wheel(wheel0, Vec3(0, 0, 1), Vec3(1, 0, 0));
-	// car_body + botshop::Joint::wheel(wheel1, Vec3(0, 0, 1), Vec3(1, 0, 0));
-	// botshop::Joint* rear_wheel_axle0 = botshop::Joint::wheel(wheel2, Vec3(0, 0, 1), Vec3(1, 0, 0));
-	// botshop::Joint* rear_wheel_axle1 = botshop::Joint::wheel(wheel3, Vec3(0, 0, 1), Vec3(1, 0, 0));
+	wheel0.is_a_sphere(0.082)->position(0.15, -0.15, 1);
+	wheel1.is_a_sphere(0.082)->position(-0.15, -0.15, 1);
+	wheel2.is_a_sphere(0.082)->position(-0.15, 0.15, 1);
+	wheel3.is_a_sphere(0.082)->position(0.15, 0.15, 1);
+	botshop::Joint* rear_wheel_axle0 = botshop::Joint::wheel(wheel0, Vec3(0, 0, 1), Vec3(1, 0, 0));
+	botshop::Joint* rear_wheel_axle1 = botshop::Joint::wheel(wheel1, Vec3(0, 0, 1), Vec3(1, 0, 0));
+	botshop::Joint* rear_wheel_axle2 = botshop::Joint::wheel(wheel2, Vec3(0, 0, 1), Vec3(1, 0, 0));
+	botshop::Joint* rear_wheel_axle3 = botshop::Joint::wheel(wheel3, Vec3(0, 0, 1), Vec3(1, 0, 0));
 
-	// car_body.attach(rear_wheel_axle0);
+
+	car_body.attach(rear_wheel_axle0);
+	car_body.attach(rear_wheel_axle1);
+	car_body.attach(rear_wheel_axle2);
+	car_body.attach(rear_wheel_axle3);
 
 	box0.is_a_box(2, 2, 2)->position(0, 2, 5);
 	box1.is_a_box(2, 2, 2)->position(-3, 0, 2);
@@ -89,12 +93,13 @@ int main(int argc, char* argv[])
 	time_t now = time(NULL);
 	int frames = 0;
 
-	while(!glfwWindowShouldClose(renderer->win))
+	while(!renderer->should_close())
 	{
-		// dJointSetHinge2Param (rear_wheel_axle0->ode_joint,dParamVel2,-0.1);
-	    // dJointSetHinge2Param (rear_wheel_axle0->ode_joint,dParamFMax2,0.1);
-		// dJointSetHinge2Param (rear_wheel_axle1->ode_joint,dParamVel2,-0.1);
-	    // dJointSetHinge2Param (rear_wheel_axle1->ode_joint,dParamFMax2,0.1);
+		const float s = 0.4;
+		dJointSetHinge2Param (rear_wheel_axle0->ode_joint,dParamVel2, s);
+	    dJointSetHinge2Param (rear_wheel_axle0->ode_joint,dParamFMax2,s);
+		dJointSetHinge2Param (rear_wheel_axle1->ode_joint,dParamVel2, s);
+	    dJointSetHinge2Param (rear_wheel_axle1->ode_joint,dParamFMax2,s);
 		Vec3 cam_pos = cam.position();
 
 		world.step(0.05);

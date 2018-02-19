@@ -40,6 +40,7 @@ class RendererGL : public Renderer
 public:
 	RendererGL(std::string data_path);
 
+	virtual bool should_close();
 	virtual void draw(Viewer* viewer, Scene* scene);
 
 	GLFWwindow* win;

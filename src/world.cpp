@@ -5,7 +5,7 @@ using namespace botshop;
 static void near_callback (void *data, dGeomID o1, dGeomID o2)
 {
 	World* world = (World*)data;
-	if(o1 == world->ground ^ o1 == world->ground) return;
+	if(!(o1 == world->ground ^ o2 == world->ground)) return;
 
 	dBodyID b1 = dGeomGetBody(o1);
 	dBodyID b2 = dGeomGetBody(o2);

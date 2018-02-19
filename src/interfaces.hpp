@@ -11,6 +11,13 @@ public:
 	virtual void step(float dt) = 0;
 };
 
+class Attachable
+{
+public:
+	// virtual void on_attached(Attachable* parent) = 0;
+	void on_attach(const Attachable* child);
+};
+
 class Dynamic
 {
 public:
@@ -62,6 +69,7 @@ public:
 class Renderer
 {
 public:
+	virtual bool should_close() = 0;
 	virtual void draw(Viewer* viewer, Scene* scene) = 0;
 };
 

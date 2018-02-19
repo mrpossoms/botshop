@@ -11,7 +11,7 @@ namespace botshop
 class Joint;
 class Body;
 
-class Body : public Dynamic
+class Body : public Dynamic, Attachable
 {
 	protected:
 		// used to group objects and speed up collision detection. A space will
@@ -39,7 +39,9 @@ class Body : public Dynamic
 		void add_all();
 		void remove_all();
 
-		Body* attach(const Joint* joint);
+		void on_attached(const Attachable* parent);
+
+		Body* attach(Joint* joint);
 		Body* attach(Body* body);
 
 		Body* is_a_box(float width, float height, float length);
@@ -72,11 +74,11 @@ class Body : public Dynamic
 		void rotation(mat3x3 rot);
 		void matrix(mat4x4 world);
 
-		Body* operator+(const Joint* joint);
+		Body* operator+(Joint* joint);
 };
 
 
-class Joint
+class Joint : public Attachable
 {
 public:
 	Joint(Body& body, dJointID joint);
@@ -86,7 +88,12 @@ public:
 
 	Joint* at(Vec3 anchor);
 
+	void on_attached(const Attachable* parent);
+
 	static Joint* wheel(Body& body, Vec3 steer_axis, Vec3 axle_axis);
+private:
+	Vec3 steer_axis;
+	Vec3 axle_axis;
 };
 
 }
