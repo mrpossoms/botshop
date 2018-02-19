@@ -7,9 +7,6 @@ static void near_callback (void *data, dGeomID o1, dGeomID o2)
 	World* world = (World*)data;
 	if(!(o1 == world->ground ^ o2 == world->ground)) return;
 
-	dBodyID b1 = dGeomGetBody(o1);
-	dBodyID b2 = dGeomGetBody(o2);
-
     const int MAX_CONTACTS = 8;
     dContact contact[MAX_CONTACTS];
 
@@ -21,6 +18,8 @@ static void near_callback (void *data, dGeomID o1, dGeomID o2)
         contact[i].surface.mode = dContactApprox1;
         contact[i].surface.mu = 5;
         dJointID c = dJointCreateContact (world->ode_world, world->ode_contact_group, contact+i);
+		dBodyID b1 = dGeomGetBody(contact[i].geom.g1);
+		dBodyID b2 = dGeomGetBody(contact[i].geom.g2);
         dJointAttach (c, b1, b2);
 	}
 }

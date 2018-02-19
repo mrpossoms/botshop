@@ -274,8 +274,8 @@ void Joint::on_attached(const Attachable* parent)
 
     dJointSetHinge2Axes (ode_joint, steer_axis.v, axle_axis.v);
 
-	dJointSetHinge2Param(ode_joint, dParamSuspensionERP, 0.4);
-	dJointSetHinge2Param(ode_joint, dParamSuspensionCFM, 0.8);
+	dJointSetHinge2Param(ode_joint, dParamSuspensionERP, 0.1);
+	dJointSetHinge2Param(ode_joint, dParamSuspensionCFM, 0.1);
 
 	dJointSetHinge2Param(ode_joint, dParamLoStop, 0);
 	dJointSetHinge2Param(ode_joint, dParamHiStop, 0);

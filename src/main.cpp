@@ -95,11 +95,26 @@ int main(int argc, char* argv[])
 
 	while(!renderer->should_close())
 	{
-		const float s = 0.4;
-		dJointSetHinge2Param (rear_wheel_axle0->ode_joint,dParamVel2, s);
-	    dJointSetHinge2Param (rear_wheel_axle0->ode_joint,dParamFMax2,s);
-		dJointSetHinge2Param (rear_wheel_axle1->ode_joint,dParamVel2, s);
-	    dJointSetHinge2Param (rear_wheel_axle1->ode_joint,dParamFMax2,s);
+		const float s = 2;
+
+		if(glfwGetKey(renderer->win, GLFW_KEY_UP) == GLFW_PRESS)
+		{
+			// s = 1;
+			wheel0.torque(-s, 0, 0);
+			wheel1.torque(-s, 0, 0);
+		}
+
+		if(glfwGetKey(renderer->win, GLFW_KEY_DOWN) == GLFW_PRESS)
+		{
+			// s = -1;
+			wheel0.torque(s, 0, 0);
+			wheel1.torque(s, 0, 0);
+		}
+
+		// dJointSetHinge2Param (rear_wheel_axle0->ode_joint,dParamVel2, s);
+	    // dJointSetHinge2Param (rear_wheel_axle0->ode_joint,dParamFMax2,0.1);
+		// dJointSetHinge2Param (rear_wheel_axle1->ode_joint,dParamVel2, s);
+	    // dJointSetHinge2Param (rear_wheel_axle1->ode_joint,dParamFMax2,0.1);
 		Vec3 cam_pos = cam.position();
 
 		world.step(0.05);
