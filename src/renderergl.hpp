@@ -3,7 +3,7 @@
 #include "core.h"
 #include "material.hpp"
 
-namespace botshop
+namespace seen
 {
 
 class Sky : public Drawable {

@@ -11,12 +11,14 @@ public:
 	virtual void step(float dt) = 0;
 };
 
+
 class Attachable
 {
 public:
 	// virtual void on_attached(Attachable* parent) = 0;
 	void on_attach(const Attachable* child);
 };
+
 
 class Dynamic
 {
@@ -32,18 +34,6 @@ public:
 	virtual void matrix(mat4x4 world) = 0;
 };
 
-struct DrawParams {
-	GLint world_uniform;
-	GLint norm_uniform;
-	GLint view_uniform;
-	GLint proj_uniform;
-	struct {
-		GLint tex;
-		GLint norm;
-		GLint spec;
-		GLint envd;
-	} material_uniforms;
-};
 
 class Viewer
 {
@@ -53,11 +43,13 @@ public:
 	virtual Viewer* projection(mat4x4 p) = 0;
 };
 
+
 class Drawable
 {
 public:
 	virtual void draw(DrawParams* params) = 0;
 };
+
 
 class Scene
 {
@@ -65,6 +57,7 @@ public:
 	virtual void draw(DrawParams* params) = 0;
 	virtual std::vector<Drawable*>& drawables() = 0;
 };
+
 
 class Renderer
 {

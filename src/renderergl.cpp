@@ -6,7 +6,7 @@
 #include <OpenGL/gl3.h>
 #endif
 
-using namespace botshop;
+using namespace seen;
 
 
 Sky::Sky()
@@ -14,7 +14,7 @@ Sky::Sky()
     glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-    Model* mesh = ModelFactory::get_model("data/sphereized_cube.obj");
+    Mesh* mesh = MeshFactory::get_model("data/sphereized_cube.obj");
     vertices = mesh->vert_count();
 
 	glBufferData(
@@ -567,14 +567,14 @@ void RendererGL::draw(Viewer* viewer, Scene* scene)
 		++env_idx;
 	}
 
-  // render the shadow_map
-  glBindFramebuffer(GL_FRAMEBUFFER, shadow_map.id);
-  draw_params = sky_shader->draw_params;
+	// render the shadow_map
+	glBindFramebuffer(GL_FRAMEBUFFER, shadow_map.id);
+	draw_params = sky_shader->draw_params;
 	glUseProgram(sky_shader->program);
-  glViewport(0, 0, 512, 512);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, 512, 512);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glUniformMatrix4fv(draw_params.view_uniform, 1, GL_FALSE, (GLfloat*)light_view);
+	glUniformMatrix4fv(draw_params.view_uniform, 1, GL_FALSE, (GLfloat*)light_view);
 	glUniformMatrix4fv(draw_params.proj_uniform, 1, GL_FALSE, (GLfloat*)light_proj);
 
 	assert(gl_get_error());
@@ -605,30 +605,6 @@ void RendererGL::draw(Viewer* viewer, Scene* scene)
 	draw_params = pbr_shader->draw_params;
 	glUseProgram(pbr_shader->program);
 
-	if(glfwGetKey(win, GLFW_KEY_F))
-	{
-		draw_params = simple_shader->draw_params;
-		glUseProgram(simple_shader->program);
-	}
-
-	int side_view_keys[] = {
-		GLFW_KEY_1,
-		GLFW_KEY_2,
-		GLFW_KEY_3,
-		GLFW_KEY_4,
-		GLFW_KEY_5,
-		GLFW_KEY_6,
-	};
-
-	for(int i = 6; i--;)
-	{
-		if(glfwGetKey(win, side_view_keys[i]))
-		{
-			mat4x4_dup(view, cube_views[i]);
-			mat4x4_dup(proj, cube_proj);
-		}
-	}
-
 	glUniformMatrix4fv(draw_params.view_uniform, 1, GL_FALSE, (GLfloat*)view);
 	glUniformMatrix4fv(draw_params.proj_uniform, 1, GL_FALSE, (GLfloat*)proj);
 
@@ -657,6 +633,6 @@ void RendererGL::draw(Viewer* viewer, Scene* scene)
 	glfwPollEvents();
 	glfwSwapBuffers(win);
 
-	Camera* cam = dynamic_cast<Camera*>(viewer);
-	if(cam) free_fly(win, cam);
+	// Camera* cam = dynamic_cast<Camera*>(viewer);
+	// if(cam) free_fly(win, cam);
 }
